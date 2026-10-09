@@ -1,0 +1,4 @@
+== dervish seed 7 dervish_lr=0.003125: val_nll=1.747590 peak_att=8.82 train_s=180.7
+== dervish seed 7 dervish_lr=0.00625: val_nll=1.698934 peak_att=9.09 train_s=180.4
+wrote runs/e2b_dervish_low.jsonl and runs/e2b_dervish_low.md
+done: e2b

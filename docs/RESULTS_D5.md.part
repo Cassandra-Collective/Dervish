@@ -30,7 +30,7 @@ the last step; it is applied to both optimizers in a pair.
 | `dervish_a0125_s01_cap_decay` | `0.0125` | `0.01` | `1.0` | yes | `1.511704` | `15.64` | `1.000` | `55.9` |
 | `muon` (Stage D1) | lr `0.02` | · | · | no | `1.538644` | `63.73` | `10.320` | `35.7` |
 | `muon_wd` (Stage D1) | lr `0.02`, wd `0.1` | · | · | no | `1.582329` | `22.80` | `4.913` | `35.9` |
-| `muon_lr01` | lr `0.01` | · | · | no | `MUON01_NLL` | `MUON01_ATT` | `MUON01_SPEC` | `MUON01_SRANK` |
+| `muon_lr01` | lr `0.01` | · | · | no | `1.527197` | `25.15` | `5.288` | `36.7` |
 | `muon_lr02_decay` | lr `0.02` | · | · | yes | `1.491569` | `30.14` | `6.613` | `37.1` |
 
 ### D6 · the capped tuned arm, three seeds, beside Stage D1

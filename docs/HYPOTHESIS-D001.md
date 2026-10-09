@@ -1,10 +1,13 @@
 # Hypothesis D001 · A rotation-based successor to Muon keeps hidden spectra bounded without losing next-character loss
 
-- Status: PRE-REGISTERED on 2026-10-09, before any matrix run. The thresholds
-  below were fixed from a 40-step smoke test only (`runs/` holds nothing from
-  this hypothesis yet at the time of writing). Results land in
-  `docs/RESULTS.md`; this file is not edited after the runs except for the
-  status line.
+- Status: RESOLVED on 2026-10-09 by `python lab/check_claims.py` over
+  `runs/`: claim 1 PASS, claim 2 KILL, claim 3 KILL (`docs/RESULTS.md`
+  Stages D1 and D2). The KILLs trace to two knobs fixed wrongly before the
+  run (spectrum rate about `10x` too slow, rotation angle about `4x` too
+  large); the post-hoc Stages D4 to D7 measure the corrected setting and
+  are the basis for the next registration, not a verdict. The text below
+  is as written before any matrix ran; the thresholds were fixed from a
+  40-step smoke test only. Nothing else in this file has been edited.
 - Date: 2026-10-09
 - Author: Mert Efe Şensoy
 - Builds on: the common Muon recipe (Muon on hidden matrices, Adam on

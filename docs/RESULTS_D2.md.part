@@ -77,4 +77,17 @@ and D5 address the low end); anything with more than one seed; that the
 implicit-decay reading is the whole explanation of the slope (the spectrum
 rate was still `1e-3` here, Stage D4's slow setting).
 
-E2B_PLACEHOLDER
+E2b, post-hoc extension of the Dervish grid downward (`./run_matrices.sh e2b`,
+same seed, budget and spectrum rate as E2):
+
+| Grid point | Val NLL at `600` | Peak attention logit | Spectral max at `600` |
+| ---: | ---: | ---: | ---: |
+| `0.003125` | `1.747590` | `8.82` | `0.655` |
+| `0.00625` | `1.698934` | `9.09` | `0.631` |
+
+The optimum at this spectrum rate is near `0.00625` (`1.698934`), and on the
+extended eight-point grid four Dervish points lie within `0.100` of it
+(`0.003125` to `0.025`, an `8x` range) against Muon's three (`0.005` to
+`0.02`, a `4x` range) on its six. That is the comparison the next
+registration should make, with a pre-committed grid; it is not a verdict on
+claim 3, whose grid was fixed in advance and gave KILL.

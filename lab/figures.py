@@ -204,7 +204,7 @@ def fig_lr_basins(sweeps: dict[str, list[dict]], out: Path) -> None:
             best_overall = min(finite) if best_overall is None else min(best_overall, min(finite))
     ax.set_xscale("log", base=2)
     ax.set_ylim(top=3.05)
-    style(ax, "E2: learning-rate basins, seed 7, 600 steps (lower is better; x marks a run outside the basin rule)", "learning rate of the swept group (log scale)", "final validation NLL")
+    style(ax, "E2: learning-rate basins, seed 7, 600 steps (lower is better; Dervish includes the E2b extension)", "learning rate of the swept group (log scale)", "final validation NLL")
     ax.legend(fontsize=7.5, frameon=False, labelcolor=TEXT)
     fig.tight_layout()
     fig.savefig(out / "e2_lr_basins.png", facecolor=SURFACE)

@@ -60,7 +60,7 @@ trainer's `build_optimizer`.
 | `dervish/` | the optimizer package: `polar.py` (two Newton-Schulz iterations), `matricize.py` (frame views for 2D, expert banks, convolutions, per-head projections), `optimizer.py` (Dervish, and a Muon reference that mirrors a reference Muon trainer line for line), `diagnostics.py` |
 | `lab/` | a self-contained, CPU-sized character-level language-model lab: instrumented `TinyTransformer`, deterministic data, `train.py`, `compare.py` (matrices), `figures.py`, `check_claims.py` |
 | `lab/corpus/` | Tiny Shakespeare (raw, `1,115,394` bytes) and a synthetic long-context copy corpus (`512` lines, generator seed `20260617`) |
-| `tests/` | 17 pytest tests: polar factors against SVD, the manifold invariant for every shape rule, the spectral cap under pressure, the rank floor, determinism, the rotation-gate interpretation |
+| `tests/` | 24 pytest tests: polar factors against SVD, the manifold invariant for every shape rule, the spectral cap under pressure, the rank floor, determinism, the rotation-gate interpretation, and the lab harness itself (causality, split alignment, loss mask, bound consistency) |
 | `docs/DESIGN.md` | the algorithm, the four propositions with proofs, knobs, cost, limits |
 | `docs/HYPOTHESIS-D001.md` | the pre-registered claims and pass or fail lines, written before any matrix ran |
 | `docs/RESULTS.md` | the staged evidence record: command shapes, seeds, parameter counts, NLL and bits/char, logit and spectrum curves, wall-clock, what each stage does not prove |
