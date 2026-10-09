@@ -27,7 +27,7 @@ if [[ "$stage" == "e3" || "$stage" == "all" ]]; then
     --configs adamw muon muon_wd dervish adamw_copyw muon_copyw muon_wd_copyw dervish_copyw \
     --out runs/e3_copy.jsonl --summary runs/e3_copy.md --title "E3 Copy Behaviour Summary"
 fi
-[[ "$stage" == "e4" || "$stage" == "e5" || "$stage" == "e2b" ]] || echo "done: $stage"
+[[ "$stage" == "e4" || "$stage" == "e5" || "$stage" == "e2b" || "$stage" == "e6" ]] || echo "done: $stage"
 
 # E4 (post-hoc, launched after E1 was read): the spectrum learning-rate sweep the hypothesis
 # named as the follow-up to a KILL on claim 2. Seed 7, same model and budget as E1.
@@ -58,4 +58,16 @@ if [[ "$stage" == "e2b" ]]; then
   python lab/compare.py "${COMMON_TEXT[@]}" --steps 600 --seeds 7 --configs dervish --sweep-key dervish_lr --sweep-values 0.003125 0.00625 \
     --out runs/e2b_dervish_low.jsonl --summary runs/e2b_dervish_low.md --title "E2b Dervish LR Sweep, lower grid (post-hoc)"
   echo "done: e2b"
+fi
+
+# E6 (post-hoc): seeds 11 and 19 for the best E5 arm, to set beside the Stage D1 seeds.
+# Usage: E6_ARGS="--optimizer dervish --dervish-lr 0.0125 --dervish-scale-lr 0.01 --dervish-cap 1.0" E6_LABEL=dervish_tuned ./run_matrices.sh e6
+if [[ "$stage" == "e6" ]]; then
+  rm -f runs/e6_replicate.jsonl
+  for seed in 7 11 19; do
+    # shellcheck disable=SC2086
+    python lab/train.py "${COMMON_TEXT[@]}" --steps 1000 --seed "$seed" --out runs/e6_replicate.jsonl $E6_ARGS --label "$E6_LABEL"
+  done
+  python lab/summarize_jsonl.py --jsonl runs/e6_replicate.jsonl --summary runs/e6_replicate.md --title "E6 Replication of the best E5 arm (post-hoc)" --command "E6_ARGS=\"$E6_ARGS\" E6_LABEL=$E6_LABEL ./run_matrices.sh e6"
+  echo "done: e6"
 fi

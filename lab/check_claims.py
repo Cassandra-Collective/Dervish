@@ -132,6 +132,30 @@ def exploratory(e1: dict[str, list[dict]], e3: dict[str, list[dict]]) -> None:
             print(f"  {k:<16} first>=0.25 at {firsts}  final acc mean {statistics.fmean(accs) if accs else float('nan'):.4f}  per seed {[round(a, 4) for a in accs]}")
 
 
+def post_hoc(e1: dict[str, list[dict]], runs: Path) -> None:
+    """Stages D4 to D6: not pre-registered, reported beside the verdicts, never folded into them."""
+    e5 = load(runs / "e5_tuned.jsonl")
+    e6 = by_label(load(runs / "e6_replicate.jsonl"))
+    if e5:
+        print("Post-hoc E5 (seed 7, 1000 steps): tuned arms vs the Stage D1 seed-7 references")
+        ref = {k: next((r["val_nll"] for r in rows if r["seed"] == 7), None) for k, rows in e1.items()}
+        for k in ("muon", "muon_wd", "adamw"):
+            if ref.get(k) is not None:
+                print(f"  {k:<30} {ref[k]:.6f}  (Stage D1)")
+        for r in e5:
+            print(f"  {r['label']:<30} {r['val_nll']:.6f}  peak att {r['att_logit_max_peak']:8.2f}  spectral max {r['hidden_spectral_norm_max_final']:7.3f}")
+    if e6 and "muon" in e1 and "muon_wd" in e1:
+        print("Post-hoc E6 (seeds 7 11 19, 1000 steps): the best E5 arm replicated, vs the Stage D1 arms")
+        for k in ("muon", "muon_wd", "adamw"):
+            print(f"  {k:<30} mean {statistics.fmean(r['val_nll'] for r in e1[k]):.6f}  {[round(r['val_nll'], 6) for r in sorted(e1[k], key=lambda r: r['seed'])]}  peak att mean {statistics.fmean(r['att_logit_max_peak'] for r in e1[k]):7.2f}")
+        for k, rows in e6.items():
+            rows = sorted(rows, key=lambda r: r["seed"])
+            mean = statistics.fmean(r["val_nll"] for r in rows)
+            print(f"  {k:<30} mean {mean:.6f}  {[round(r['val_nll'], 6) for r in rows]}  peak att mean {statistics.fmean(r['att_logit_max_peak'] for r in rows):7.2f}")
+            best_muon = min(statistics.fmean(r["val_nll"] for r in e1["muon"]), statistics.fmean(r["val_nll"] for r in e1["muon_wd"]))
+            print(f"  {k} - best muon arm = {mean - best_muon:+.6f} (the claim-2 lines would read {'PASS' if mean - best_muon <= 0.03 else 'PARTIAL' if mean - best_muon <= 0.1 else 'KILL'}; post-hoc, so no verdict is claimed)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=Path("runs"))
@@ -146,6 +170,8 @@ def main() -> None:
     v3 = claim_3(e2)
     print()
     exploratory(e1, e3)
+    print()
+    post_hoc(e1, args.runs)
     print()
     print(f"VERDICTS  claim 1: {v1}   claim 2: {v2}   claim 3: {v3}")
 

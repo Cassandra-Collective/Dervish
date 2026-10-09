@@ -1,0 +1,80 @@
+## Stage D2 · E2, learning-rate robustness
+
+Date: 2026-10-09 · pre-registered in `docs/HYPOTHESIS-D001.md` (claim 3);
+the E2b extension below is post-hoc.
+
+Artifacts: `runs/e2_muon.jsonl`, `runs/e2_dervish.jsonl`,
+`runs/e2_adamw.jsonl` (`6` reports each), the matching `runs/e2_*.md`,
+`runs/e2b_dervish_low.jsonl` (post-hoc, `2` reports),
+`figures/e2_lr_basins.png`, `runs/logs/e2.log`, `runs/logs/e2b.log`.
+
+Command shape (one invocation per optimizer; `run_matrices.sh e2`):
+
+```bash
+python lab/compare.py --corpus lab/corpus/tiny_shakespeare_raw.txt --normalize --eval-interval 100 --eval-mode full --block-size 128 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --threads 2 --quiet --steps 600 --seeds 7 --configs muon --sweep-key muon_lr --sweep-values 0.005 0.01 0.02 0.04 0.08 0.16 --out runs/e2_muon.jsonl --summary runs/e2_muon.md --title "E2 Muon LR Sweep"
+```
+
+Seed `7`, `600` steps, six grid points at ratio `2` per optimizer. The
+swept rate is the hidden-matrix rate for Muon (`muon_lr`) and Dervish
+(`dervish_lr`, the rotation angle), and the single Adam rate for AdamW. All
+other knobs as in Stage D1 (Dervish's spectrum rate `1e-3`).
+
+| Optimizer | Grid point | Val NLL at `600` | Peak attention logit | Spectral max at `600` | In basin |
+| --- | ---: | ---: | ---: | ---: | :---: |
+| `muon` | `0.005` | `1.593666` | `15.27` | `2.28` | yes |
+| `muon` | `0.01` | `1.577231` | `23.14` | `4.12` | yes (best) |
+| `muon` | `0.02` | `1.597937` | `43.03` | `7.97` | yes |
+| `muon` | `0.04` | `1.683983` | `389.35` | `17.04` | no |
+| `muon` | `0.08` | `1.872226` | `3127.81` | `37.78` | no |
+| `muon` | `0.16` | `2.025102` | `21100.23` | `85.28` | no |
+| `dervish` | `0.0125` | `1.704168` | `10.39` | `0.66` | yes (best) |
+| `dervish` | `0.025` | `1.760363` | `10.20` | `0.65` | yes |
+| `dervish` | `0.05` | `1.856089` | `8.36` | `0.66` | no |
+| `dervish` | `0.1` | `2.037375` | `8.46` | `0.62` | no |
+| `dervish` | `0.2` | `2.193886` | `10.04` | `0.66` | no |
+| `dervish` | `0.4` | `2.363965` | `8.96` | `0.74` | no |
+| `adamw` | `0.00025` | `1.921047` | `14.26` | `1.28` | no |
+| `adamw` | `0.0005` | `1.829015` | `18.95` | `1.53` | yes |
+| `adamw` | `0.001` | `1.738072` | `23.37` | `2.52` | yes (best) |
+| `adamw` | `0.002` | `1.772961` | `33.57` | `5.76` | yes |
+| `adamw` | `0.004` | `1.835623` | `240.17` | `9.87` | yes |
+| `adamw` | `0.008` | `2.004097` | `890.80` | `23.34` | no |
+
+Verdict (`python lab/check_claims.py`): **claim 3, KILL.** Basin sizes on
+the pre-registered rule (grid points within `0.100` NLL of the optimizer's
+best): Muon `3/6`, Dervish `2/6`, AdamW `4/6`. Dervish's basin is smaller,
+not larger. No run diverged to a non-finite loss.
+
+Interpretation:
+
+The grid was centred on the wrong default. Dervish's loss falls
+monotonically as the angle shrinks, from `2.364` at `0.4` to `1.704` at
+`0.0125`, and its best point is the smallest on the grid, so the basin is
+truncated by the grid edge rather than by the optimizer. The angle `0.05`
+fixed before the runs is at least `4x` too large. The verdict is kept as
+computed, because that is what pre-registration is for; the post-hoc E2b
+extension (`0.003125` and `0.00625`) is reported below so that the next
+registration can centre the grid.
+
+Why the angle matters more for Dervish than the rate matters for Muon is
+the stage's real finding. A Muon step has a fixed spectral norm, so as the
+weights grow (Stage D1: `0.68` to `10.4`) each step becomes a smaller
+rotation of the weight; Muon's norm growth is an implicit learning-rate
+decay. Dervish removes the growth and with it the free decay: a `0.05`
+radian rotation at step `1000` is as large as at step `1`. The lab's answer
+is either a smaller constant angle or an explicit schedule, which is what
+Stage D5 tries.
+
+The logit columns say what the basin rule does not. Past its basin, Muon
+does not merely get worse, its attention logits reach `389`, `3128` and
+`21100`; AdamW's reach `240` and `891`. Dervish's never exceed `10.4` at any
+angle on the grid, by construction (Proposition 2), so its failure mode at
+a bad rate is a slow model, not an exploding one. That is the property the
+optimizer was built for, and it survives a `32x` range of rates.
+
+What this stage does not prove: that Dervish's true basin is wider (E2b
+and D5 address the low end); anything with more than one seed; that the
+implicit-decay reading is the whole explanation of the slope (the spectrum
+rate was still `1e-3` here, Stage D4's slow setting).
+
+E2B_PLACEHOLDER

@@ -14,3 +14,9 @@ wrote runs/e2_muon.jsonl and runs/e2_muon.md
 wrote runs/e2_dervish.jsonl and runs/e2_dervish.md
 == adamw seed 7 lr=0.00025: val_nll=1.921047 peak_att=14.26 train_s=150.3
 == adamw seed 7 lr=0.0005: val_nll=1.829015 peak_att=18.95 train_s=148.9
+== adamw seed 7 lr=0.001: val_nll=1.738072 peak_att=23.37 train_s=157.5
+== adamw seed 7 lr=0.002: val_nll=1.772961 peak_att=33.57 train_s=150.6
+== adamw seed 7 lr=0.004: val_nll=1.835623 peak_att=240.17 train_s=191.1
+== adamw seed 7 lr=0.008: val_nll=2.004097 peak_att=890.80 train_s=318.4
+wrote runs/e2_adamw.jsonl and runs/e2_adamw.md
+done: e2
