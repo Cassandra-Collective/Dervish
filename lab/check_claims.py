@@ -156,6 +156,21 @@ def post_hoc(e1: dict[str, list[dict]], runs: Path) -> None:
             print(f"  {k} - best muon arm = {mean - best_muon:+.6f} (the claim-2 lines would read {'PASS' if mean - best_muon <= 0.03 else 'PARTIAL' if mean - best_muon <= 0.1 else 'KILL'}; post-hoc, so no verdict is claimed)")
 
 
+def post_hoc_e7(runs: Path) -> None:
+    e7 = by_label(load(runs / "e7_decay_pair.jsonl"))
+    if not e7:
+        return
+    print("Post-hoc E7 (seeds 7 11 19, 1000 steps): the decayed pair, same linear decay to 10% for both")
+    means = {}
+    for k, rows in e7.items():
+        rows = sorted(rows, key=lambda r: r["seed"])
+        means[k] = statistics.fmean(r["val_nll"] for r in rows)
+        print(f"  {k:<30} mean {means[k]:.6f}  {[round(r['val_nll'], 6) for r in rows]}  peak att mean {statistics.fmean(r['att_logit_max_peak'] for r in rows):7.2f}  spectral max mean {statistics.fmean(r['hidden_spectral_norm_max_final'] for r in rows):6.3f}")
+    if "dervish_tuned_decay" in means and "muon_decay" in means:
+        gap = means["dervish_tuned_decay"] - means["muon_decay"]
+        print(f"  dervish_tuned_decay - muon_decay = {gap:+.6f} (the claim-2 lines would read {'PASS' if gap <= 0.03 else 'PARTIAL' if gap <= 0.1 else 'KILL'}; post-hoc, so no verdict is claimed)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=Path("runs"))
@@ -172,6 +187,7 @@ def main() -> None:
     exploratory(e1, e3)
     print()
     post_hoc(e1, args.runs)
+    post_hoc_e7(args.runs)
     print()
     print(f"VERDICTS  claim 1: {v1}   claim 2: {v2}   claim 3: {v3}")
 
