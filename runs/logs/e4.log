@@ -1,1 +1,10 @@
 == dervish seed 7 dervish_scale_lr=0.003: val_nll=1.792909 peak_att=15.95 train_s=715.6
+== dervish seed 7 dervish_scale_lr=0.01: val_nll=1.765969 peak_att=20.89 train_s=410.6
+== dervish seed 7 dervish_scale_lr=0.03: val_nll=1.777600 peak_att=18.01 train_s=292.8
+== dervish seed 7 dervish_scale_lr=0.1: val_nll=1.792898 peak_att=18.14 train_s=290.8
+== dervish_nocap seed 7 dervish_scale_lr=0.003: val_nll=1.781425 peak_att=16.30 train_s=292.9
+== dervish_nocap seed 7 dervish_scale_lr=0.01: val_nll=1.775106 peak_att=25.65 train_s=292.1
+== dervish_nocap seed 7 dervish_scale_lr=0.03: val_nll=1.758380 peak_att=39.89 train_s=301.2
+== dervish_nocap seed 7 dervish_scale_lr=0.1: val_nll=1.802167 peak_att=87.51 train_s=345.2
+wrote runs/e4_scale_lr.jsonl and runs/e4_scale_lr.md
+done: e4

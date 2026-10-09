@@ -70,6 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-head-views", action="store_true", help="view c_attn as one matrix instead of per-head frames")
     parser.add_argument("--ns-dtype", default="auto", choices=["auto", "float32", "bfloat16"])
     parser.add_argument("--grad-clip", type=float, default=0.0)
+    parser.add_argument("--lr-decay-to", type=float, default=1.0, help="linear decay of every learning rate to this fraction of its start value at the last step (1.0 = constant)")
     parser.add_argument("--eval-interval", type=int, default=100)
     parser.add_argument("--eval-mode", default="full", choices=["full", "sampled"])
     parser.add_argument("--eval-batches", type=int, default=16)
@@ -346,6 +347,16 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
 
     marker_ids = codec.encode(args.copy_train_marker) if args.copy_train_marker else []
     use_copy_weight = bool(marker_ids) and args.copy_loss_weight != 1.0
+    lr_keys = ("lr", "scale_lr")
+    base_lrs = [{k: float(g[k]) for k in lr_keys if k in g} for g in optimizer.param_groups]
+
+    def apply_schedule(step: int) -> None:
+        if args.lr_decay_to >= 1.0:
+            return
+        factor = 1.0 - (1.0 - args.lr_decay_to) * (step - 1) / max(args.steps - 1, 1)
+        for group, base in zip(optimizer.param_groups, base_lrs):
+            for k, v in base.items():
+                group[k] = v * factor
 
     record(0, None)
     model.train()
@@ -365,6 +376,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         loss.backward()
         if args.grad_clip > 0:
             nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
+        apply_schedule(step)
         optimizer.step()
         train_seconds += time.perf_counter() - t0
         recent_losses.append(loss_value)
@@ -401,6 +413,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         "n_embd": args.n_embd,
         "pos_encoding": args.pos_encoding,
         "lr": args.lr,
+        "lr_decay_to": args.lr_decay_to,
         "weight_decay": args.weight_decay,
         "muon_lr": args.muon_lr if args.optimizer == "muon" else None,
         "dervish_lr": args.dervish_lr if args.optimizer == "dervish" else None,

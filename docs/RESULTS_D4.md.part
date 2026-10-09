@@ -1,0 +1,53 @@
+## Stage D4 · E4, the spectrum learning-rate sweep (post-hoc)
+
+Date: 2026-10-09 · post-hoc: launched after Stage D1 was read, as the
+follow-up the hypothesis named for a KILL on claim 2. Not pre-registered;
+one seed; read as a diagnosis, not a result.
+
+Artifacts: `runs/e4_scale_lr.jsonl` (`8` reports), `runs/e4_scale_lr.md`,
+`runs/logs/e4.log`.
+
+Command shape:
+
+```bash
+python lab/compare.py --corpus lab/corpus/tiny_shakespeare_raw.txt --normalize --eval-interval 100 --eval-mode full --block-size 128 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --threads 2 --quiet --steps 1000 --seeds 7 --configs dervish dervish_nocap --sweep-key dervish_scale_lr --sweep-values 0.003 0.01 0.03 0.1 --out runs/e4_scale_lr.jsonl --summary runs/e4_scale_lr.md --title "E4 Dervish Spectrum LR Sweep (post-hoc)"
+```
+
+Same model, corpus, budget and seed `7` as Stage D1; rotation angle `0.05`
+as in Stage D1; only the spectrum learning rate changes.
+
+| Arm | Spectrum lr | Val NLL | Spectral max at `1000` | Peak attention logit | Stable rank at `1000` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `dervish` (cap `1.0`) | `0.001` (Stage D1) | `1.815227` | `0.802` | `12.01` | `51.9` |
+| `dervish` | `0.003` | `1.792909` | `1.000` | `15.95` | `37.1` |
+| `dervish` | `0.01` | `1.765969` | `1.000` | `20.89` | `41.2` |
+| `dervish` | `0.03` | `1.777600` | `1.000` | `18.01` | `47.0` |
+| `dervish` | `0.1` | `1.792898` | `1.000` | `18.14` | `49.3` |
+| `dervish_nocap` | `0.003` | `1.781425` | `1.363` | `16.30` | `37.2` |
+| `dervish_nocap` | `0.01` | `1.775106` | `2.975` | `25.65` | `25.3` |
+| `dervish_nocap` | `0.03` | `1.758380` | `6.247` | `39.89` | `20.2` |
+| `dervish_nocap` | `0.1` | `1.802167` | `12.973` | `87.51` | `17.8` |
+| `muon` (Stage D1, seed `7`) | · | `1.538644` | `10.320` | `63.73` | `35.7` |
+
+Interpretation:
+
+A faster spectrum helps, by at most `0.057` NLL, and then stops helping.
+With the cap, every spectrum learning rate from `0.003` up saturates the
+cap by step `300` or earlier (`spectral max = 1.000` for the rest of the
+run), so the cap becomes the binding constraint and the best capped loss is
+`1.765969`, still `+0.227` above Muon. Without the cap the spectrum grows
+freely, to `13.0` at the fastest rate, and the best uncapped loss is
+`1.758380`, still `+0.220` above Muon. The uncapped arm also shows what the
+cap buys: at spectrum lr `0.1`, the attention logit peak is `87.5` and the
+stable rank has fallen to `17.8`, Muon's regime, while the capped arm at the
+same rate holds `18.1` and `49.3`.
+
+So the slow spectrum explains only a quarter of the Stage D1 gap. The rest
+is not the cap either, since removing it changes the loss by `0.008`. The
+remaining suspect is the rotation angle `0.05`, which Stage D2's sweep
+tests directly; the reading there (the smallest angle on the grid is the
+best, by a wide margin) is what sent the lab to Stage D5.
+
+What this stage does not prove: anything with more than one seed; that the
+`0.01` to `0.03` optimum is stable; that the cap's benefit on rank carries
+any loss benefit at this scale (it did not here).

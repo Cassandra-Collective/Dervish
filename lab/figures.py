@@ -117,6 +117,48 @@ def fig_curves(rows: list[dict], out: Path, stem: str, title_prefix: str) -> Non
     plt.close(fig)
 
 
+def fig_scale_lr(rows: list[dict], out: Path) -> None:
+    fig, ax = plt.subplots(figsize=(8.5, 4.2), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    for label in ("dervish", "dervish_nocap"):
+        pts = sorted((r for r in rows if r["label"] == label), key=lambda r: r["sweep_value"])
+        if not pts:
+            continue
+        color, name, dash = series_style(label)
+        ax.plot([r["sweep_value"] for r in pts], [r["val_nll"] for r in pts], color=color, linewidth=2, linestyle=dash, marker="o", markersize=5, label=name)
+        for r in pts:
+            ax.annotate(f"spec {r['hidden_spectral_norm_max_final']:.2g}", (r["sweep_value"], r["val_nll"]), xytext=(0, 7), textcoords="offset points", fontsize=7, color=TEXT_2, ha="center")
+    ax.set_xscale("log")
+    style(ax, "E4 (post-hoc): final NLL vs spectrum learning rate, seed 7, 1000 steps (labels: final spectral max)", "spectrum learning rate (log scale)", "final validation NLL")
+    ax.legend(fontsize=7.5, frameon=False, labelcolor=TEXT)
+    fig.tight_layout()
+    fig.savefig(out / "e4_scale_lr.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
+def fig_tuned(rows: list[dict], out: Path) -> None:
+    """E5: validation NLL and attention-logit curves of the tuned arms, one line per run."""
+    fig, axes = plt.subplots(2, 1, figsize=(8.5, 6.8), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    palette = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
+    for i, r in enumerate(rows):
+        color = palette[i % len(palette)]
+        steps = [h["step"] for h in r["history"]]
+        dash = "--" if r["label"].startswith("muon") else "-"
+        for ax, key in zip(axes, ("val_nll", "att_logit_max")):
+            ys = [h[key] for h in r["history"]]
+            ax.plot(steps, ys, color=color, linewidth=2, linestyle=dash, label=r["label"])
+            ax.annotate(f"{ys[-1]:.3g}", (steps[-1], ys[-1]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=TEXT_2, va="center")
+    style(axes[0], "E5 (post-hoc, seed 7): validation NLL of the tuned arms", "training step", "validation NLL")
+    axes[0].set_ylim(1.4, 2.6)
+    style(axes[1], "E5 (post-hoc, seed 7): largest attention logit (dashed = Muon arms)", "training step", "attention logit max")
+    axes[1].set_yscale("log")
+    axes[0].legend(fontsize=7, frameon=False, labelcolor=TEXT, ncol=2)
+    fig.tight_layout()
+    fig.savefig(out / "e5_tuned_curves.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
 def fig_lr_basins(sweeps: dict[str, list[dict]], out: Path) -> None:
     fig, ax = plt.subplots(figsize=(8.5, 4.2), dpi=150)
     fig.patch.set_facecolor(SURFACE)
@@ -165,9 +207,18 @@ def main() -> None:
         fig_curves(weighted, args.out, "e3_copy_weighted_curves", "E3 copy corpus, copy weight 50")
         print("wrote e3_copy_weighted_curves.png")
     sweeps = {name: load(args.runs / f"e2_{name}.jsonl") for name in ("muon", "dervish", "adamw")}
+    sweeps["dervish"] = sweeps["dervish"] + load(args.runs / "e2b_dervish_low.jsonl")  # post-hoc lower grid joins the series
     if any(sweeps.values()):
         fig_lr_basins(sweeps, args.out)
         print("wrote e2_lr_basins.png")
+    e4 = load(args.runs / "e4_scale_lr.jsonl")
+    if e4:
+        fig_scale_lr(e4, args.out)
+        print("wrote e4_scale_lr.png")
+    e5 = load(args.runs / "e5_tuned.jsonl")
+    if e5:
+        fig_tuned(e5, args.out)
+        print("wrote e5_tuned_curves.png")
 
 
 if __name__ == "__main__":

@@ -1,3 +1,16 @@
 == muon seed 7 muon_lr=0.005: val_nll=1.593666 peak_att=15.27 train_s=344.2
 == muon seed 7 muon_lr=0.01: val_nll=1.577231 peak_att=23.14 train_s=392.9
 == muon seed 7 muon_lr=0.02: val_nll=1.597937 peak_att=43.03 train_s=299.5
+== muon seed 7 muon_lr=0.04: val_nll=1.683983 peak_att=389.35 train_s=236.6
+== muon seed 7 muon_lr=0.08: val_nll=1.872226 peak_att=3127.81 train_s=269.8
+== muon seed 7 muon_lr=0.16: val_nll=2.025102 peak_att=21100.23 train_s=222.1
+wrote runs/e2_muon.jsonl and runs/e2_muon.md
+== dervish seed 7 dervish_lr=0.0125: val_nll=1.704168 peak_att=10.39 train_s=173.4
+== dervish seed 7 dervish_lr=0.025: val_nll=1.760363 peak_att=10.20 train_s=178.1
+== dervish seed 7 dervish_lr=0.05: val_nll=1.856089 peak_att=8.36 train_s=177.3
+== dervish seed 7 dervish_lr=0.1: val_nll=2.037375 peak_att=8.46 train_s=174.7
+== dervish seed 7 dervish_lr=0.2: val_nll=2.193886 peak_att=10.04 train_s=176.6
+== dervish seed 7 dervish_lr=0.4: val_nll=2.363965 peak_att=8.96 train_s=178.3
+wrote runs/e2_dervish.jsonl and runs/e2_dervish.md
+== adamw seed 7 lr=0.00025: val_nll=1.921047 peak_att=14.26 train_s=150.3
+== adamw seed 7 lr=0.0005: val_nll=1.829015 peak_att=18.95 train_s=148.9
