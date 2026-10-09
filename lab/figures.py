@@ -136,6 +136,30 @@ def fig_scale_lr(rows: list[dict], out: Path) -> None:
     plt.close(fig)
 
 
+def fig_replication(e1: list[dict], e6: list[dict], e7: list[dict], out: Path) -> None:
+    """E6/E7 beside Stage D1: three-seed validation NLL curves (mean, min-max band)."""
+    groups = by_label([r for r in e1 if r["label"] in ("muon", "muon_wd")]) | by_label(e6) | by_label(e7)
+    palette = {"muon": "#eb6834", "muon_wd": "#1baf7a", "dervish_tuned": "#2a78d6", "dervish_tuned_decay": "#4a3aa7", "muon_decay": "#e34948"}
+    names = {"muon": "Muon, no decay (D1)", "muon_wd": "Muon, weight decay 0.1 (D1)", "dervish_tuned": "Dervish tuned, cap 1.0 (E6)", "dervish_tuned_decay": "Dervish tuned + linear decay (E7)", "muon_decay": "Muon + the same linear decay (E7)"}
+    fig, axes = plt.subplots(2, 1, figsize=(8.5, 6.8), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    for ax, key in zip(axes, ("val_nll", "att_logit_max")):
+        for label, group in groups.items():
+            steps = [h["step"] for h in group[0]["history"]]
+            series = [[r["history"][i][key] for r in group] for i in range(len(steps))]
+            mean = [statistics.fmean(v) for v in series]
+            ax.fill_between(steps, [min(v) for v in series], [max(v) for v in series], color=palette[label], alpha=0.12, linewidth=0)
+            ax.plot(steps, mean, color=palette[label], linewidth=2, linestyle="--" if "decay" in label else "-", label=f"{names[label]} (n={len(group)})")
+            ax.annotate(f"{mean[-1]:.3g}", (steps[-1], mean[-1]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=TEXT_2, va="center")
+    style(axes[0], "E6 and E7 (post-hoc, three seeds) beside Stage D1: validation NLL", "training step", "validation NLL")
+    axes[0].set_ylim(1.4, 2.6)
+    style(axes[1], "E6 and E7 beside Stage D1: largest attention logit", "training step", "attention logit max")
+    axes[0].legend(fontsize=7, frameon=False, labelcolor=TEXT)
+    fig.tight_layout()
+    fig.savefig(out / "e6_e7_replication.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
 def fig_tuned(rows: list[dict], out: Path) -> None:
     """E5: validation NLL and attention-logit curves of the tuned arms, one line per run."""
     fig, axes = plt.subplots(2, 1, figsize=(8.5, 6.8), dpi=150)
@@ -219,6 +243,11 @@ def main() -> None:
     if e5:
         fig_tuned(e5, args.out)
         print("wrote e5_tuned_curves.png")
+    e6 = load(args.runs / "e6_replicate.jsonl")
+    e7 = load(args.runs / "e7_decay_pair.jsonl")
+    if e1 and (e6 or e7):
+        fig_replication(e1, e6, e7, args.out)
+        print("wrote e6_e7_replication.png")
 
 
 if __name__ == "__main__":

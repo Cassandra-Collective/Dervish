@@ -27,7 +27,7 @@ if [[ "$stage" == "e3" || "$stage" == "all" ]]; then
     --configs adamw muon muon_wd dervish adamw_copyw muon_copyw muon_wd_copyw dervish_copyw \
     --out runs/e3_copy.jsonl --summary runs/e3_copy.md --title "E3 Copy Behaviour Summary"
 fi
-[[ "$stage" == "e4" || "$stage" == "e5" || "$stage" == "e2b" || "$stage" == "e6" ]] || echo "done: $stage"
+[[ "$stage" == "e4" || "$stage" == "e5" || "$stage" == "e2b" || "$stage" == "e6" || "$stage" == "e7" ]] || echo "done: $stage"
 
 # E4 (post-hoc, launched after E1 was read): the spectrum learning-rate sweep the hypothesis
 # named as the follow-up to a KILL on claim 2. Seed 7, same model and budget as E1.
@@ -70,4 +70,15 @@ if [[ "$stage" == "e6" ]]; then
   done
   python lab/summarize_jsonl.py --jsonl runs/e6_replicate.jsonl --summary runs/e6_replicate.md --title "E6 Replication of the best E5 arm (post-hoc)" --command "E6_ARGS=\"$E6_ARGS\" E6_LABEL=$E6_LABEL ./run_matrices.sh e6"
   echo "done: e6"
+fi
+
+# E7 (post-hoc): the decayed pair from E5 over seeds 7 11 19. Same schedule for both arms.
+if [[ "$stage" == "e7" ]]; then
+  rm -f runs/e7_decay_pair.jsonl
+  for seed in 7 11 19; do
+    python lab/train.py "${COMMON_TEXT[@]}" --steps 1000 --seed "$seed" --out runs/e7_decay_pair.jsonl --optimizer dervish --dervish-lr 0.0125 --dervish-scale-lr 0.01 --dervish-cap 1.0 --lr-decay-to 0.1 --label dervish_tuned_decay
+    python lab/train.py "${COMMON_TEXT[@]}" --steps 1000 --seed "$seed" --out runs/e7_decay_pair.jsonl --optimizer muon --muon-lr 0.02 --lr-decay-to 0.1 --label muon_decay
+  done
+  python lab/summarize_jsonl.py --jsonl runs/e7_decay_pair.jsonl --summary runs/e7_decay_pair.md --title "E7 Decayed pair, three seeds (post-hoc)" --command "./run_matrices.sh e7"
+  echo "done: e7"
 fi
