@@ -1,0 +1,3 @@
+== muon seed 7 muon_lr=0.005: val_nll=1.593666 peak_att=15.27 train_s=344.2
+== muon seed 7 muon_lr=0.01: val_nll=1.577231 peak_att=23.14 train_s=392.9
+== muon seed 7 muon_lr=0.02: val_nll=1.597937 peak_att=43.03 train_s=299.5

@@ -1,0 +1,78 @@
+## Stage D3 · E3, copy behaviour on the long-context copy corpus
+
+Date: 2026-10-09 · exploratory in `docs/HYPOTHESIS-D001.md` (no pass line).
+
+Artifacts: `runs/e3_copy.jsonl` (`24` reports), `runs/e3_copy.md`,
+`figures/e3_copy_plain_curves.png`, `figures/e3_copy_weighted_curves.png`,
+`runs/logs/e3.log`.
+
+Command shape:
+
+```bash
+python lab/compare.py --corpus lab/corpus/long_context_seed.txt --eval-interval 100 --eval-mode full --block-size 96 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --threads 2 --quiet --steps 1000 --seeds 7 11 19 --copy-probe-marker "answer=" --configs adamw muon muon_wd dervish adamw_copyw muon_copyw muon_wd_copyw dervish_copyw --out runs/e3_copy.jsonl --summary runs/e3_copy.md --title "E3 Copy Behaviour Summary"
+```
+
+Corpus: `lab/corpus/long_context_seed.txt`, a synthetic copy task
+(`512` lines, generator seed `20260617`; `38,921`
+characters, `43` symbols, `8` keys, chance `0.125`); `51` probe cases in the
+validation split. Model as in Stage D1 with block `96` (`804,395`
+parameters). The `_copyw` arms add a copy-position loss weight `50` on
+the character after `answer=`; the probe is the same for every arm.
+
+| Arm | Mean val NLL | Copy accuracy at `1000` (mean) | Per seed | First evaluation at or above `0.25` (seeds `7 11 19`) | Peak attention logit (mean) | Spectral max at `1000` (mean) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `adamw` | `0.251985` | `0.993464` | `1.000` `0.980` `1.000` | `200` `300` `300` | `25.29` | `3.082` |
+| `muon` | `0.252694` | `1.000000` | `1.000` `1.000` `1.000` | `100` `100` `100` | `247.68` | `13.619` |
+| `muon_wd` | `0.281399` | `0.993464` | `1.000` `0.980` `1.000` | `100` `100` `100` | `60.27` | `5.814` |
+| `dervish` | `0.267591` | `0.888889` | `0.824` `0.843` `1.000` | `600` `400` `200` | `10.77` | `0.778` |
+| `adamw_copyw` | `0.303530` | `1.000000` | `1.000` `1.000` `1.000` | `100` `100` `200` | `23.06` | `3.839` |
+| `muon_copyw` | `0.242133` | `1.000000` | `1.000` `1.000` `1.000` | `100` `100` `100` | `433.02` | `15.906` |
+| `muon_wd_copyw` | `0.247307` | `1.000000` | `1.000` `1.000` `1.000` | `100` `100` `100` | `104.70` | `7.322` |
+| `dervish_copyw` | `0.327848` | `0.986928` | `1.000` `0.961` `1.000` | `100` `100` `100` | `11.32` | `0.888` |
+
+Copy accuracy per evaluation, mean over seeds (full table in `runs/e3_copy.md`):
+
+| Step | `adamw` | `muon` | `muon_wd` | `dervish` | `adamw_copyw` | `muon_copyw` | `dervish_copyw` |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `100` | `0.124` | `0.497` | `0.562` | `0.163` | `0.366` | `0.993` | `0.856` |
+| `200` | `0.216` | `0.993` | `0.987` | `0.222` | `0.987` | `0.967` | `0.908` |
+| `300` | `0.608` | `1.000` | `1.000` | `0.255` | `0.980` | `1.000` | `0.941` |
+| `500` | `0.987` | `0.967` | `0.967` | `0.137` | `1.000` | `1.000` | `1.000` |
+| `700` | `0.987` | `0.987` | `1.000` | `0.902` | `1.000` | `1.000` | `0.895` |
+| `1000` | `0.993` | `1.000` | `0.993` | `0.889` | `1.000` | `1.000` | `0.987` |
+
+Interpretation:
+
+Three things are measured here, and the first goes against the proposal.
+Under plain next-character training, the copy behaviour forms in the order
+Muon (`100` steps, with or without decay), AdamW (`200` to `300`), Dervish
+(`200` to `600`, and only `0.89` at the end). Dervish with the slow
+spectrum of Stage D1 is the *slowest* to form the behaviour, not the
+fastest. The simplicity-bias intuition that keeping every direction alive
+would make the copy circuit easier to find is not supported by this run;
+the simpler explanation is that a sharp copy needs sharp attention, and the
+starved spectrum keeps the attention logits at `10.8` when Muon's reach
+`248`.
+
+Second, under the copy-position weight, the ordering disappears:
+every arm, Dervish included, passes twice chance at the first evaluation,
+and Dervish ends at `0.987` (`1.000`, `0.961`, `1.000`) with its attention
+logits bounded at `11.3`. Logits of that size are enough for a near-perfect
+copy when the objective gives the behaviour direct credit. That is a useful
+fact for the bound-first design: the cap does not forbid the behaviour, it
+only stops being found for free.
+
+Third, this corpus is where Muon's growth is most extreme: peak attention
+logits of `247.68` without and `433.02` with the copy weight, hidden
+spectral norms of `13.6` and `15.9`, with no divergence in `1000` steps.
+Dervish's plain-training loss (`0.267591`) is within `+0.015` of Muon's
+here, far closer than on natural text, because this corpus is nearly
+deterministic and the loss floor is reached by every arm.
+
+What this stage does not prove: anything about the simplicity bias beyond
+one synthetic task at one model size; that Dervish would still be last with
+a faster spectrum (Stage D4 changes exactly that knob, on natural text, and
+the copy corpus was not rerun); that Muon's `433` logits would have
+diverged with more steps. The `_copyw` validation NLLs are not comparable
+to the plain ones, since the weighted objective spends capacity on the
+answer positions (the expected cost of the weighting).

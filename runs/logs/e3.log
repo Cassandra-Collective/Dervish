@@ -20,3 +20,7 @@
 == muon_wd_copyw seed 11: val_nll=0.255558 peak_att=99.32 train_s=214.8
 == muon_wd_copyw seed 19: val_nll=0.242756 peak_att=117.30 train_s=219.3
 == dervish_copyw seed 7: val_nll=0.323519 peak_att=11.09 train_s=241.7
+== dervish_copyw seed 11: val_nll=0.342192 peak_att=11.65 train_s=530.4
+== dervish_copyw seed 19: val_nll=0.317834 peak_att=11.23 train_s=512.6
+wrote runs/e3_copy.jsonl and runs/e3_copy.md
+done: e3
