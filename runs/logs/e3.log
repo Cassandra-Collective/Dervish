@@ -1,0 +1,3 @@
+== adamw seed 7: val_nll=0.245118 peak_att=31.25 train_s=202.9
+== adamw seed 11: val_nll=0.258241 peak_att=21.83 train_s=287.4
+== adamw seed 19: val_nll=0.252597 peak_att=22.80 train_s=228.6
