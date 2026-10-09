@@ -62,7 +62,7 @@ def by_label(rows: list[dict]) -> dict[str, list[dict]]:
 def series_style(label: str) -> tuple[str, str, str]:
     base = label.replace("_copyw", "")
     color, name = SERIES.get(base, ("#52514e", label))
-    dash = "--" if label.endswith("_copyw") else "-"
+    dash = "--" if label.endswith("_copyw") or label == "dervish_nocap" else "-"
     if label.endswith("_copyw"):
         name += ", copy weight 50"
     return color, name, dash

@@ -1,2 +1,17 @@
 == adamw seed 7: val_nll=1.640289 peak_att=23.37 train_s=321.3
 == adamw seed 11: val_nll=1.658257 peak_att=23.35 train_s=327.3
+== adamw seed 19: val_nll=1.638606 peak_att=24.00 train_s=312.9
+== muon seed 7: val_nll=1.538644 peak_att=63.73 train_s=311.9
+== muon seed 11: val_nll=1.562646 peak_att=52.45 train_s=310.6
+== muon seed 19: val_nll=1.554498 peak_att=53.60 train_s=304.0
+== muon_wd seed 7: val_nll=1.582329 peak_att=22.80 train_s=291.4
+== muon_wd seed 11: val_nll=1.579973 peak_att=23.55 train_s=297.9
+== muon_wd seed 19: val_nll=1.588875 peak_att=23.60 train_s=294.3
+== dervish seed 7: val_nll=1.815227 peak_att=12.01 train_s=322.5
+== dervish seed 11: val_nll=1.816444 peak_att=11.72 train_s=326.8
+== dervish seed 19: val_nll=1.836123 peak_att=11.28 train_s=330.8
+== dervish_nocap seed 7: val_nll=1.815227 peak_att=12.01 train_s=301.7
+== dervish_nocap seed 11: val_nll=1.816444 peak_att=11.72 train_s=295.9
+== dervish_nocap seed 19: val_nll=1.836123 peak_att=11.28 train_s=308.0
+wrote runs/e1_text.jsonl and runs/e1_text.md
+done: e1
