@@ -38,6 +38,21 @@ CONFIGS: dict[str, dict[str, Any]] = {
     "muon_copyw": {"optimizer": "muon", "copy_train_marker": "answer=", "copy_loss_weight": 50.0},
     "muon_wd_copyw": {"optimizer": "muon", "weight_decay": 0.1, "copy_train_marker": "answer=", "copy_loss_weight": 50.0},
     "dervish_copyw": {"optimizer": "dervish", "copy_train_marker": "answer=", "copy_loss_weight": 50.0},
+    # Stage D8 (docs/HYPOTHESIS-D002.md): MONA (arXiv:2605.26842) against the
+    # post-hoc Dervish setting of Stages D5 to D7. MONA is the repo's Muon with
+    # the acceleration term in front of the momentum; beta_a 0.99 is the paper's
+    # smallest-model value and is overridden by --sweep-key mona_beta.
+    "muon_lr01": {"optimizer": "muon", "muon_lr": 0.01},
+    "mona": {"optimizer": "muon", "mona_beta": 0.99},
+    "mona_lr01": {"optimizer": "muon", "muon_lr": 0.01, "mona_beta": 0.99},
+    "dervish_tuned": {"optimizer": "dervish", "dervish_lr": 0.0125, "dervish_scale_lr": 0.01, "dervish_cap": 1.0},
+    "dervish_tuned_mona": {"optimizer": "dervish", "dervish_lr": 0.0125, "dervish_scale_lr": 0.01, "dervish_cap": 1.0, "mona_beta": 0.99},
+    "muon_decay": {"optimizer": "muon", "lr_decay_to": 0.1},
+    "muon_lr01_decay": {"optimizer": "muon", "muon_lr": 0.01, "lr_decay_to": 0.1},
+    "mona_decay": {"optimizer": "muon", "mona_beta": 0.99, "lr_decay_to": 0.1},
+    "mona_lr01_decay": {"optimizer": "muon", "muon_lr": 0.01, "mona_beta": 0.99, "lr_decay_to": 0.1},
+    "dervish_tuned_decay": {"optimizer": "dervish", "dervish_lr": 0.0125, "dervish_scale_lr": 0.01, "dervish_cap": 1.0, "lr_decay_to": 0.1},
+    "dervish_tuned_mona_decay": {"optimizer": "dervish", "dervish_lr": 0.0125, "dervish_scale_lr": 0.01, "dervish_cap": 1.0, "mona_beta": 0.99, "lr_decay_to": 0.1},
 }
 
 

@@ -58,6 +58,46 @@ def adam_update(
 # ----------------------------------------------------------------------------
 
 
+def mona_tied_alpha(beta: float) -> float:
+    """The MONA paper's tie between the acceleration coefficient and its EMA rate.
+
+    arXiv:2605.26842 (section 8): alpha = -1 / (2 (1 - beta_a)), so beta_a 0.99
+    gives alpha -50. With this tie the accelerated gradient is exactly the mean
+    of the current gradient and the beta_a-EMA of the earlier ones (see
+    mona_accelerate).
+    """
+    if not 0.0 <= beta < 1.0:
+        raise ValueError("mona beta must be in [0, 1)")
+    return -1.0 / (2.0 * (1.0 - beta))
+
+
+def mona_accelerate(grad: torch.Tensor, state: dict[str, Any], beta: float, alpha: float | None) -> torch.Tensor:
+    """MONA's acceleration term (arXiv:2605.26842, Algorithm 1, lines 4 to 6 and 10).
+
+        D_k = G_k - G_{k-1}           (G_0 = 0, as in the paper)
+        A_k = beta A_{k-1} + (1 - beta) D_k
+        G~_k = G_k + alpha A_k
+
+    Returns G~_k; updates `state["mona_prev_grad"]` and `state["mona_accel"]` in
+    place. `alpha=None` uses the paper's tie (mona_tied_alpha). Summing the EMA by
+    parts gives the exact identity A_k = (1 - beta) (G_k - E_{k-1}), where
+    E_{k-1} = (1 - beta) sum_{j<k} beta^{k-1-j} G_j is the zero-initialised
+    beta-EMA of the earlier gradients. Under the tie, G~_k = (G_k + E_{k-1}) / 2:
+    a slow second momentum in front of Muon's own, not a look-ahead
+    (tests/test_mona.py checks the identity).
+    """
+    if not 0.0 <= beta < 1.0:
+        raise ValueError("mona beta must be in [0, 1)")
+    alpha = mona_tied_alpha(beta) if alpha is None else float(alpha)
+    if "mona_prev_grad" not in state:
+        state["mona_prev_grad"] = torch.zeros_like(grad)
+        state["mona_accel"] = torch.zeros_like(grad)
+    accel: torch.Tensor = state["mona_accel"]
+    accel.lerp_(grad - state["mona_prev_grad"], 1.0 - beta)
+    state["mona_prev_grad"].copy_(grad)
+    return grad + alpha * accel
+
+
 def muon_update(
     grad: torch.Tensor,
     momentum_buffer: torch.Tensor,
@@ -81,8 +121,11 @@ class MuonWithAuxAdam(torch.optim.Optimizer):
 
     Param groups carry `use_muon`. Muon groups: lr 0.02, momentum 0.95,
     weight_decay 0.0, ns_steps 5, nesterov True, ns_dtype float32. Adam groups:
-    lr 3e-4, betas (0.9, 0.95), eps 1e-10, weight_decay 0.0. The only addition
-    over the reference code is `ns_dtype` (the original hard-codes bfloat16).
+    lr 3e-4, betas (0.9, 0.95), eps 1e-10, weight_decay 0.0. The additions over
+    the reference code are `ns_dtype` (the original hard-codes bfloat16) and the
+    optional MONA term (`mona_beta`, `mona_alpha`; arXiv:2605.26842), which
+    replaces the gradient by `mona_accelerate(grad)` before the momentum and
+    changes nothing else. `mona_beta=None` is plain Muon, bit for bit.
     """
 
     def __init__(self, param_groups: list[dict[str, Any]]) -> None:
@@ -99,6 +142,8 @@ class MuonWithAuxAdam(torch.optim.Optimizer):
                 group.setdefault("ns_steps", 5)
                 group.setdefault("nesterov", True)
                 group.setdefault("ns_dtype", torch.float32)
+                group.setdefault("mona_beta", None)  # None = plain Muon; a float in [0, 1) = MONA
+                group.setdefault("mona_alpha", None)  # None = the paper's tie, mona_tied_alpha(beta)
             else:
                 group.setdefault("lr", 3e-4)
                 group.setdefault("betas", (0.9, 0.95))
@@ -120,8 +165,11 @@ class MuonWithAuxAdam(torch.optim.Optimizer):
                     state = self.state[parameter]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(parameter)
+                    grad = parameter.grad
+                    if group["mona_beta"] is not None:
+                        grad = mona_accelerate(grad, state, float(group["mona_beta"]), group["mona_alpha"])
                     update = muon_update(
-                        parameter.grad,
+                        grad,
                         state["momentum_buffer"],
                         float(group["momentum"]),
                         int(group["ns_steps"]),
@@ -176,6 +224,8 @@ FRAME_DEFAULTS: dict[str, Any] = {
     "scale_cap": None,  # upper bound on every singular value; None = unbounded
     "scale_floor": 0.0,  # lower bound on every singular value
     "init_polar": "svd",  # "svd" (exact, once per parameter) or "iterative"
+    "mona_beta": None,  # None = off; a float in [0, 1) applies MONA's term to the frame gradient
+    "mona_alpha": None,  # None = the MONA paper's tie, mona_tied_alpha(beta)
 }
 
 ADAM_DEFAULTS: dict[str, Any] = {
@@ -304,7 +354,12 @@ class Dervish(torch.optim.Optimizer):
         scale_grad = (grad * frame).sum(dim=-1)
         frame_grad = scale.unsqueeze(-1) * grad
 
-        # 2. momentum, tangent projection, orthogonalisation
+        # 2. (optional) MONA's acceleration term, then momentum, tangent
+        # projection, orthogonalisation. The term enters where MONA puts it in
+        # Muon: on the matrix gradient, before the momentum. The spectrum's
+        # gradient is left alone, as MONA leaves Adam's vectors alone.
+        if group["mona_beta"] is not None:
+            frame_grad = mona_accelerate(frame_grad, state, float(group["mona_beta"]), group["mona_alpha"])
         momentum = float(group["momentum"])
         buffer: torch.Tensor = state["momentum"]
         buffer.lerp_(frame_grad, 1.0 - momentum)

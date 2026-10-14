@@ -59,6 +59,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--muon-momentum", type=float, default=0.95)
     parser.add_argument("--muon-ns-steps", type=int, default=5)
     parser.add_argument("--no-nesterov", action="store_true")
+    parser.add_argument("--mona-beta", type=float, default=-1.0, help="MONA acceleration EMA rate beta_a for the Muon or Dervish frame group (arXiv:2605.26842); < 0 means off")
+    parser.add_argument("--mona-alpha", type=float, default=None, help="MONA acceleration coefficient; default: the paper's tie -1 / (2 (1 - beta_a))")
     parser.add_argument("--dervish-lr", type=float, default=0.05, help="rotation angle per step (radians)")
     parser.add_argument("--dervish-scale-lr", type=float, default=1e-3)
     parser.add_argument("--dervish-cap", type=float, default=1.0, help="upper bound on every singular value; <= 0 means unbounded")
@@ -102,6 +104,12 @@ def resolve_ns_dtype(requested: str, device: str) -> torch.dtype:
     return torch.bfloat16 if device == "cuda" else torch.float32
 
 
+def mona_beta(args: argparse.Namespace) -> float | None:
+    """The MONA beta_a for the hidden-matrix group, or None when MONA is off."""
+    beta = getattr(args, "mona_beta", -1.0)
+    return None if beta is None or beta < 0 else float(beta)
+
+
 def build_optimizer(model: TinyTransformer, args: argparse.Namespace, ns_dtype: torch.dtype) -> tuple[torch.optim.Optimizer, dict[str, Any], dict[str, FrameView]]:
     named = list(model.named_parameters())
     views: dict[str, FrameView] = {} if args.no_head_views else model.head_views()
@@ -127,6 +135,8 @@ def build_optimizer(model: TinyTransformer, args: argparse.Namespace, ns_dtype: 
                 "nesterov": not args.no_nesterov,
                 "weight_decay": args.weight_decay,
                 "ns_dtype": ns_dtype,
+                "mona_beta": mona_beta(args),
+                "mona_alpha": getattr(args, "mona_alpha", None),
             },
             adam_kwargs=adam_kwargs,
         )
@@ -150,6 +160,8 @@ def build_optimizer(model: TinyTransformer, args: argparse.Namespace, ns_dtype: 
             "scale_cap": cap,
             "scale_floor": args.dervish_floor,
             "scale_decay": args.dervish_scale_decay,
+            "mona_beta": mona_beta(args),
+            "mona_alpha": getattr(args, "mona_alpha", None),
         },
         adam_kwargs=adam_kwargs,
     )
@@ -417,6 +429,8 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         "weight_decay": args.weight_decay,
         "muon_lr": args.muon_lr if args.optimizer == "muon" else None,
         "dervish_lr": args.dervish_lr if args.optimizer == "dervish" else None,
+        "mona_beta": mona_beta(args) if args.optimizer != "adamw" else None,
+        "mona_alpha": getattr(args, "mona_alpha", None) if args.optimizer != "adamw" and mona_beta(args) is not None else None,
         "dervish_scale_lr": args.dervish_scale_lr if args.optimizer == "dervish" else None,
         "dervish_cap": (args.dervish_cap if args.dervish_cap and args.dervish_cap > 0 else None) if args.optimizer == "dervish" else None,
         "dervish_floor": args.dervish_floor if args.optimizer == "dervish" else None,
