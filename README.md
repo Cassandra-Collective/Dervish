@@ -228,6 +228,16 @@ The rest are in `docs/PRIOR_ART.md`.
 D7), `docs/HYPOTHESIS-D002.md`, `docs/RESULTS.md` Stage D8, then
 `docs/PRIOR_ART.md` before anyone cites this.
 
+## Contributing
+
+Contributions are welcome, including experiments that show Dervish losing.
+`CONTRIBUTING.md` covers setup, where to find work, the pre-registration
+workflow for experiments, and pull requests. Everyone taking part follows the
+[Cassandra Collective code of conduct](https://github.com/Cassandra-Collective/.github/blob/main/CODE_OF_CONDUCT.md).
+Please report security issues privately, as the
+[security policy](https://github.com/Cassandra-Collective/.github/blob/main/SECURITY.md)
+describes.
+
 ## License
 
 MIT, see `LICENSE`.
