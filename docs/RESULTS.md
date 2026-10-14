@@ -1,11 +1,13 @@
 # Results · Dervish lab, staged record
 
-Every number here traces to a file under `runs/`. Platform for every stage:
+Every number here traces to a file under `runs/`. Platform for Stages D1 to D7:
 a Linux x86-64 cloud container (kernel `6.18`, glibc `2.39`), `4` CPU threads of an Intel Xeon at `2.10 GHz`, `15 GB` RAM, Python `3.13.16`, PyTorch `2.14.1` (a CUDA build with no GPU present, so every run is CPU float32 and every Newton-Schulz iteration runs in float32), matplotlib `3.11.2`. Two or three matrices usually shared the four cores, so the wall-clock columns are upper bounds for a quiet machine. Seeds `7 11 19` unless stated. Validation NLL is the
 chunked deterministic evaluation over the whole validation split
 (`--eval-mode full`), in nats per character; bits/char is NLL divided by
 `ln 2`. Verdicts are computed by `lab/check_claims.py` against the lines fixed
-in `docs/HYPOTHESIS-D001.md` before any run.
+in `docs/HYPOTHESIS-D001.md` before any run. Stage D8 ran on another machine
+and states its own platform; its verdicts come from `lab/check_d002.py` and
+`docs/HYPOTHESIS-D002.md`.
 
 Stages:
 
@@ -14,10 +16,16 @@ Stages:
 - D3 · E3, copy behaviour on the long-context copy corpus (exploratory)
 - D4 · E4, the spectrum learning-rate sweep (post-hoc)
 - D5 to D7 · tuning what the pre-registered run got wrong (post-hoc, E5 to E7)
+- D8 · Dervish against MONA (arXiv:2605.26842) on fresh seeds (pre-registered,
+  `docs/HYPOTHESIS-D002.md`)
 
 Verdict summary, from `python lab/check_claims.py`: claim 1 PASS, claim 2 KILL,
 claim 3 KILL. The post-hoc stages explain both KILLs and measure the corrected
-setting; they carry no verdict of their own.
+setting; they carry no verdict of their own. From `python lab/check_d002.py`
+(Stage D8, fresh seeds): on the primary schedule (linear decay) Dervish passes
+the parity line, `+0.026` NLL behind the best Muon-family arm against a line of
+`+0.030`, with its bound intact; at a constant rate it is PARTIAL, `+0.057`
+behind. MONA's term does not beat Muon at this scale.
 
 ## Stage D1 · E1, next-character loss and spectra on natural text
 
@@ -228,6 +236,12 @@ validation split. Model as in Stage D1 with block `96` (`804,395`
 parameters). The `_copyw` arms add a copy-position loss weight `50` on
 the character after `answer=`; the probe is the same for every arm.
 
+Note added 2026-10-14: when the repository was prepared for publication,
+one word in this corpus's header line was replaced by `synthetic`, a word of
+the same length drawn from the same alphabet. Character positions, the split
+and the vocabulary are unchanged, but the E3 runs used the original line, so a
+rerun can differ from the table below in the last digits.
+
 | Arm | Mean val NLL | Copy accuracy at `1000` (mean) | Per seed | First evaluation at or above `0.25` (seeds `7 11 19`) | Peak attention logit (mean) | Spectral max at `1000` (mean) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `adamw` | `0.251985` | `0.993464` | `1.000` `0.980` `1.000` | `200` `300` `300` | `25.29` | `3.082` |
@@ -431,3 +445,170 @@ anything at larger scale, on CUDA, with bfloat16 Newton-Schulz, or on a
 corpus other than Tiny Shakespeare; that the decay schedule chosen here
 (linear to `10%`) is the right one for either optimizer; whether the
 remaining gap to undecayed Muon closes with a longer budget.
+
+## Stage D8 · Dervish against MONA on fresh seeds
+
+Date: 2026-10-14 · pre-registered in `docs/HYPOTHESIS-D002.md` (Q1 to Q4),
+committed before any evaluation run was read.
+
+Artifacts: `runs/d8/d8a_selection.jsonl` (`30` reports) and `.md`,
+`runs/d8/d8b_eval.jsonl` (`40` reports) and `.md`, `runs/d8/verdicts.txt`,
+`runs/d8/logs/`, `figures/d8_mona_comparison.png`.
+
+Command shape: `./run_matrices.sh d8` (or `.\run_matrices.ps1 d8`), which runs
+`lab/run_d8.py` for D8a and D8b and then `python lab/check_d002.py`.
+
+Platform: Windows 11 (build `26300`), Python `3.13.14`, PyTorch `2.12.1+cu126`
+on CPU. A GPU was present and unused, because CPU and CUDA runs of the same
+seed do not agree and mixed-device arms are not comparable. Newton-Schulz ran
+in float32, with `2` threads per run and `8` runs in parallel on one 14-core
+x86-64 CPU. The parallelism inflates every `train s` column about fourfold, so
+wall-clock is not compared here. Model, corpus, evaluation and budget are as in
+Stage D1 (`802,596` parameters, `1000` steps).
+
+The MONA arm is the repo's Muon with one change: MONA's acceleration term in
+front of the momentum, `G~_k = G_k + alpha A_k`, where `A_k` is the
+`beta_a`-EMA of `G_k - G_{k-1}` and `alpha = -1/(2(1 - beta_a))`
+(`dervish/optimizer.py: mona_accelerate`). `Dervish + MONA` puts the same term
+in front of Dervish's frame momentum.
+
+### D8a · selection on seed 7
+
+| Schedule | Family | Grid (val NLL at `1000`) | Selected |
+| --- | --- | --- | --- |
+| constant | Muon | lr `0.01`: `1.526010`; lr `0.02`: `1.541158` | lr `0.01` |
+| constant | MONA | lr `0.01`, beta_a `0.9/0.95/0.98/0.99`: `1.560952`, `1.545893`, `1.541749`, `1.538663`; lr `0.02`: `1.597181`, `1.599130`, `1.583291`, `1.571366` | lr `0.01`, beta_a `0.99` |
+| constant | Dervish | angle `0.0125`, spectrum `0.01`, cap `1.0`: `1.589352` | (fixed in Stage D5) |
+| constant | Dervish + MONA | beta_a `0.9/0.95/0.98/0.99`: `1.650575`, `1.635657`, `1.622792`, `1.599158` | beta_a `0.99` |
+| decay | Muon | lr `0.01`: `1.496437`; lr `0.02`: `1.490938` | lr `0.02` |
+| decay | MONA | lr `0.01`: `1.505709`, `1.499012`, `1.494821`, `1.498440`; lr `0.02`: `1.509049`, `1.500918`, `1.496842`, `1.504903` | lr `0.01`, beta_a `0.98` |
+| decay | Dervish | `1.511704` | (fixed in Stage D5) |
+| decay | Dervish + MONA | `1.530093`, `1.524603`, `1.517400`, `1.513474` | beta_a `0.99` |
+
+No MONA point beat the best Muon point of its schedule on seed 7.
+
+Machine check against the record, seed 7:
+
+| Arm | Here | Record |
+| --- | ---: | ---: |
+| Muon lr `0.02` | `1.541158` | `1.538644` |
+| Muon lr `0.01` | `1.526010` | `1.527197` |
+| Dervish tuned | `1.589352` | `1.590136` |
+| Muon with decay | `1.490938` | `1.491569` |
+| Dervish tuned with decay | `1.511704` | `1.511704` (every printed digit) |
+
+All five agree within `0.003`, on a different CPU, operating system and
+PyTorch build. The registration's line was `0.01`.
+
+### D8b · fresh seeds 23 29 31 37 41
+
+| Schedule | Arm | Seeds `23` · `29` · `31` · `37` · `41` | Mean val NLL | Bits/char | Peak attention logit (mean) | Spectral max at `1000` | Stable rank |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| constant | Muon lr `0.01` | `1.529004` · `1.535686` · `1.538061` · `1.530854` · `1.530269` | `1.532775` | `2.211327` | `27.29` | `5.323` | `36.3` |
+| constant | MONA lr `0.01`, beta_a `0.99` | `1.536077` · `1.535163` · `1.538859` · `1.536307` · `1.532233` | `1.535728` | `2.215587` | `38.74` | `8.855` | `34.7` |
+| constant | Dervish | `1.595479` · `1.590607` · `1.589118` · `1.594888` · `1.576600` | `1.589338` | `2.292931` | `16.87` | `1.000` | `59.6` |
+| constant | Dervish + MONA | `1.610399` · `1.602486` · `1.601757` · `1.612142` · `1.596688` | `1.604694` | `2.315085` | `16.28` | `1.000` | `57.6` |
+| decay | Muon lr `0.02` | `1.489924` · `1.476218` · `1.487904` · `1.485756` · `1.484349` | `1.484830` | `2.142157` | `30.04` | `6.669` | `36.4` |
+| decay | MONA lr `0.01`, beta_a `0.98` | `1.493232` · `1.488893` · `1.500126` · `1.492835` · `1.489879` | `1.492993` | `2.153934` | `24.01` | `4.942` | `35.7` |
+| decay | Dervish | `1.519307` · `1.510405` · `1.512000` · `1.496758` · `1.516085` | `1.510911` | `2.179784` | `15.78` | `1.000` | `54.6` |
+| decay | Dervish + MONA | `1.522055` · `1.504040` · `1.503184` · `1.503868` · `1.516154` | `1.509860` | `2.178268` | `15.51` | `1.000` | `53.1` |
+
+Paired differences at step `1000`, as the mean over the five seeds with the
+95% paired-t interval (`t = 2.776`). Negative means the first arm is better.
+
+| Schedule | Difference | Mean | 95% interval | Per seed |
+| --- | --- | ---: | --- | --- |
+| constant | MONA - Muon | `+0.002953` | `[-0.001018, +0.006924]` | `+0.0071 -0.0005 +0.0008 +0.0055 +0.0020` |
+| constant | Dervish - Muon (the reference `R`) | `+0.056563` | `[+0.045961, +0.067166]` | `+0.0665 +0.0549 +0.0511 +0.0640 +0.0463` |
+| constant | Dervish - MONA | `+0.053611` | `[+0.045801, +0.061420]` | `+0.0594 +0.0554 +0.0503 +0.0586 +0.0444` |
+| constant | (Dervish + MONA) - Dervish | `+0.015356` | `[+0.011162, +0.019550]` | `+0.0149 +0.0119 +0.0126 +0.0173 +0.0201` |
+| decay | MONA - Muon | `+0.008163` | `[+0.003025, +0.013300]` | `+0.0033 +0.0127 +0.0122 +0.0071 +0.0055` |
+| decay | Dervish - Muon (the reference `R`) | `+0.026081` | `[+0.014636, +0.037526]` | `+0.0294 +0.0342 +0.0241 +0.0110 +0.0317` |
+| decay | Dervish - MONA | `+0.017918` | `[+0.005809, +0.030027]` | `+0.0261 +0.0215 +0.0119 +0.0039 +0.0262` |
+| decay | (Dervish + MONA) - Dervish | `-0.001051` | `[-0.009163, +0.007062]` | `+0.0027 -0.0064 -0.0088 +0.0071 +0.0001` |
+
+Verdicts (`python lab/check_d002.py`, also in `runs/d8/verdicts.txt`):
+
+- **Q1, does MONA beat Muon here?** Constant: NOT REPLICATED. Decay:
+  REVERSED (MONA is worse by `0.008`, interval above zero).
+- **Q2, is Dervish as good as the best of the Muon family?** Decay (primary):
+  **PASS**, `+0.026` against a line of `+0.030`. Constant: PARTIAL, `+0.057`.
+- **Q3, the bound.** Holds at every evaluation of all `20` Dervish and Dervish
+  + MONA runs: largest hidden spectral norm `1.000003`, attention logits at
+  least `12.76` below the analytic bound.
+- **Q4, does MONA's term compose with Dervish?** Constant: HURTS (`+0.015`).
+  Decay: NEUTRAL.
+
+Interpretation:
+
+The PASS is real on the registered line, and it is narrow. The line was
+written on the mean. The mean is `+0.026`, so Dervish passes by `0.004`. The
+paired interval `[+0.015, +0.038]` lies above zero: on these five seeds,
+Dervish with decay is reliably *worse* than Muon with decay, by `0.015` to
+`0.038` nats per character. A non-inferiority rule (upper end of the interval
+below the margin) would have been stricter, and Dervish would have failed it.
+That is the rule the next registration should use, with more seeds. The PASS
+supports "within a few hundredths of Muon while holding a provable bound" at
+this scale. It does not support "as good as Muon", and it does not support "a
+successor to Muon".
+
+Against MONA, the comparison that was asked for, Dervish is `+0.018` behind
+under decay (interval `[+0.006, +0.030]`) and `+0.054` behind at a constant
+rate. MONA is not a stronger baseline here: it ties Muon at a constant rate and
+loses to it under decay. This does not refute the paper. Its models are
+`10^3` to `10^5` times larger, its runs are `10^5` times longer, and its batch
+sizes do not fit on this machine.
+
+A mechanism explains why MONA's term can hurt at this size. With the paper's
+tie, the term is exactly the mean of the current gradient and the slow EMA of
+the earlier ones (`tests/test_mona.py`). In front of Muon it therefore acts as
+a second, slower momentum, not a look-ahead.
+
+The same mechanism shows in the spectra. At matched learning rate on seed 7
+(D8a), MONA grows the hidden spectral norm faster than Muon at every point of
+its grid:
+
+| Setting | MONA (range over beta_a) | Muon |
+| --- | ---: | ---: |
+| lr `0.02`, no decay | `13.8` to `20.0` | `10.4` |
+| lr `0.01`, no decay | `6.7` to `9.1` | `5.3` |
+| lr `0.02`, decay | `8.1` to `13.9` | `6.5` |
+
+It also raises the peak attention logit, to `139` to `219` against `46` at lr
+`0.02`. On the fresh seeds at constant rate, MONA ends at spectral norm `8.9`
+(Muon `5.3`; growth `x13.0` against `x7.8`) and a peak logit of `38.7` (Muon
+`27.3`). An acceleration of this kind makes the problem Dervish targets worse,
+not better.
+
+For its `0.026` nats, Dervish buys what Stages D1 to D7 showed:
+
+- a hidden spectral norm pinned at `1.000`;
+- peak attention logits of `15.8` to `16.9`, against `24` to `39` for the
+  Muon family;
+- a stable rank of `55` to `60`, against `35` to `36`.
+
+Output logits are similar in every arm (`11` to `12` at step `1000`).
+
+The size of the attention-logit gap matters too. Muon with a schedule reaches
+`30`, not the `57` of Stage D1's constant-rate run, so at this scale the "logit
+explosion" is mild once a schedule is used.
+
+The bound grows with the LayerNorm gains. On average it rose from `22.6` to
+`32.7` (decay) and to `38.4` (constant) by step `1000` (`docs/DESIGN.md`
+section 8).
+
+The MONA term costs Dervish `0.015` at a constant rate and nothing measurable
+under decay, so the two ideas do not compose here.
+
+What this stage does not prove:
+
+- anything beyond `0.8M` parameters, `1000` steps, one character-level corpus
+  and CPU float32;
+- that MONA fails in its own regime;
+- that the Dervish setting chosen in Stage D5 is the best Dervish setting (it
+  was not retuned here, by design);
+- that five seeds pin the gap more finely than the interval says.
+
+The selection used seed `7`, the same seed Dervish's knobs were chosen on in
+Stage D5, so every family had one look at it. Nobody had touched the
+evaluation seeds before this stage.

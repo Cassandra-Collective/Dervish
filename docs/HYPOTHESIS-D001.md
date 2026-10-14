@@ -9,6 +9,10 @@
   is as written before any matrix ran; the thresholds were fixed from a
   40-step smoke test only. Nothing else in this file has been edited.
 - Date: 2026-10-09
+- Edited 2026-10-14, for publication only: references to a private project
+  (its name, stage numbers and file paths) and a personal dedication were
+  replaced by neutral wording when the repository history was rewritten. No
+  hypothesis, arm, seed, threshold or pass line was changed.
 - Author: Mert Efe Şensoy
 - Builds on: the common Muon recipe (Muon on hidden matrices, Adam on
   embeddings and head, constant learning rate, no weight decay), a copy-task

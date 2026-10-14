@@ -1,5 +1,11 @@
 # Hypothesis D002 · Dervish against MONA on fresh seeds
 
+- Resolution (added after the runs): RESOLVED on 2026-10-14 by `python lab/check_d002.py` over
+  `runs/d8/` (`docs/RESULTS.md` Stage D8). Primary schedule (decay): Q1
+  REVERSED, Q2 PASS (`+0.026`, inside the `+0.030` line on the mean; the paired
+  95% interval is `[+0.015, +0.038]`), Q3 bound holds, Q4 NEUTRAL. Constant
+  rate: Q1 NOT REPLICATED, Q2 PARTIAL (`+0.057`), Q3 holds, Q4 HURTS. Nothing
+  below this line has been edited since registration.
 - Status: REGISTERED 2026-10-14, before any run in this file. The selection
   rules, arms, seeds and pass lines below are fixed. Verdicts will be computed
   by `lab/check_d002.py` from the run files under `runs/d8/` and recorded in

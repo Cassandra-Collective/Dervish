@@ -1,4 +1,4 @@
-"""Dervish · a rotation-based successor to Muon.
+"""Dervish · a Muon variant with a provably bounded spectrum.
 
 Every hidden weight matrix is kept, at all times, in the factored form
 

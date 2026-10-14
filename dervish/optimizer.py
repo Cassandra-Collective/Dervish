@@ -237,7 +237,7 @@ ADAM_DEFAULTS: dict[str, Any] = {
 
 
 class Dervish(torch.optim.Optimizer):
-    """Rotation-based successor to Muon. See the module docstring.
+    """A Muon variant whose frames move by rotations under a capped spectrum. See the module docstring.
 
     `param_groups` entries carry `role`: "frame" or "adam". Frame groups accept
     the keys in FRAME_DEFAULTS; adam groups the keys in ADAM_DEFAULTS. `views`

@@ -1,0 +1,5 @@
+# Keep text files LF everywhere and the corpora byte-exact on every platform,
+# so the documented byte and character counts hold after a Windows checkout.
+* text=auto eol=lf
+*.png binary
+lab/corpus/** -text

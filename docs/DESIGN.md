@@ -220,6 +220,13 @@ frame versus Muon's single momentum buffer; Adam keeps two matrices.
 - Biases are not frames. Proposition 2 carries them as additive terms; they
   are trained by Adam and could in principle grow, which is why the bound is
   evaluated from the live parameters rather than assumed constant.
+- LayerNorm gains are not capped either, and Proposition 2 scales with
+  `max|gamma|`. The bound is therefore a bound relative to parameters that
+  Adam can grow, not a constant: on the fresh seeds of Stage D8b it rose from
+  `22.6` at step `0` to `32.7` (linear decay) and `38.4` (constant rate) on
+  average at step `1000`, while the measured logits peaked near `16`.
+  A constant bound needs the gains capped too (or removed, as in
+  Lipschitz-constrained transformers).
 - Nothing here is tested beyond `0.8M` parameters and `1000` steps on one CPU
   (see `docs/RESULTS.md` for exactly what was run), and the bfloat16
   Newton-Schulz path is untested on hardware.

@@ -27,7 +27,7 @@ if [[ "$stage" == "e3" || "$stage" == "all" ]]; then
     --configs adamw muon muon_wd dervish adamw_copyw muon_copyw muon_wd_copyw dervish_copyw \
     --out runs/e3_copy.jsonl --summary runs/e3_copy.md --title "E3 Copy Behaviour Summary"
 fi
-[[ "$stage" == "e4" || "$stage" == "e5" || "$stage" == "e2b" || "$stage" == "e6" || "$stage" == "e7" ]] || echo "done: $stage"
+[[ "$stage" == "e4" || "$stage" == "e5" || "$stage" == "e2b" || "$stage" == "e6" || "$stage" == "e7" || "$stage" == "d8" ]] || echo "done: $stage"
 
 # E4 (post-hoc, launched after E1 was read): the spectrum learning-rate sweep the hypothesis
 # named as the follow-up to a KILL on claim 2. Seed 7, same model and budget as E1.
@@ -81,4 +81,17 @@ if [[ "$stage" == "e7" ]]; then
   done
   python lab/summarize_jsonl.py --jsonl runs/e7_decay_pair.jsonl --summary runs/e7_decay_pair.md --title "E7 Decayed pair, three seeds (post-hoc)" --command "./run_matrices.sh e7"
   echo "done: e7"
+fi
+
+# D8 (pre-registered in docs/HYPOTHESIS-D002.md): Dervish against MONA. D8a selects on seed 7,
+# D8b evaluates the selected arms on seeds 23 29 31 37 41; lab/check_d002.py computes the verdicts.
+# The --select list below is the selection Stage D8 made; check_d002.py prints the one your D8a
+# files imply, and the two should agree before D8b is trusted. WORKERS parallel jobs, 2 threads each.
+if [[ "$stage" == "d8" ]]; then
+  python lab/run_d8.py . d8a runs/d8/d8a --workers "${WORKERS:-8}" --threads 2
+  cat runs/d8/d8a/*.jsonl > runs/d8/d8a_selection.jsonl
+  python lab/run_d8.py . d8b runs/d8/d8b --workers "${WORKERS:-8}" --threads 2 --select muon_lr01 mona_lr01:0.99 dervish_tuned dervish_tuned_mona:0.99 muon_decay mona_lr01_decay:0.98 dervish_tuned_decay dervish_tuned_mona_decay:0.99
+  cat runs/d8/d8b/*.jsonl > runs/d8/d8b_eval.jsonl
+  python lab/check_d002.py
+  echo "done: d8"
 fi

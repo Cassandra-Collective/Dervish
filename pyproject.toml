@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dervish-optimizer"
+version = "0.1.0"
+description = "A Muon variant that keeps every hidden matrix as a capped spectrum times an orthonormal frame, so spectral norms and attention logits are provably bounded."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Mert Efe Şensoy" }]
+requires-python = ">=3.11"
+dependencies = ["torch>=2.1"]
+keywords = ["optimizer", "muon", "stiefel", "spectral norm", "transformer", "pytorch"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Development Status :: 3 - Alpha",
+]
+
+[project.optional-dependencies]
+lab = ["matplotlib>=3.7"]
+test = ["pytest>=7", "matplotlib>=3.7"]
+
+[project.urls]
+Repository = "https://github.com/mertefesensoy/Dervish"
+
+[tool.setuptools]
+packages = ["dervish"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,3 +1,8 @@
 __pycache__/
 .pytest_cache/
 *.pyc
+build/
+dist/
+*.egg-info/
+runs/d8/d8a/
+runs/d8/d8b/
