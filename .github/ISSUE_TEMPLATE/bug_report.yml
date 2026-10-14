@@ -1,0 +1,101 @@
+name: Bug report
+description: Something in the optimizer, the lab or the scripts behaves wrongly.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. Please search the [open issues](https://github.com/Cassandra-Collective/Dervish/issues) first.
+
+        A security vulnerability must not be reported here. Use the [private advisory form](https://github.com/Cassandra-Collective/Dervish/security/advisories/new) instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The observed behaviour, with the exact error text or the wrong number.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened instead, and why (a test, a document, a theorem in docs/DESIGN.md).
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: The smallest script or command that shows the problem, with its seed. Put code in a fenced code block.
+      placeholder: |
+        ```python
+        import torch
+        from dervish import build_dervish
+
+        torch.manual_seed(0)
+        ...
+        ```
+    validations:
+      required: true
+  - type: input
+    id: dervish-version
+    attributes:
+      label: Dervish version or commit
+      description: "`pip show dervish-optimizer` for an installed package, or `git rev-parse --short HEAD` for a clone."
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: "`python --version`"
+      placeholder: "3.13.14"
+    validations:
+      required: true
+  - type: input
+    id: pytorch-version
+    attributes:
+      label: PyTorch version
+      description: "`python -c \"import torch; print(torch.__version__)\"`"
+      placeholder: "2.12.1+cu126"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, Ubuntu 24.04, macOS 15"
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      description: Where the failing code ran.
+      options:
+        - CPU
+        - CUDA GPU
+        - Apple MPS
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: device-details
+    attributes:
+      label: Device details
+      description: For a GPU, the model, the CUDA version and the Newton-Schulz dtype (`ns_dtype`) if it is not float32.
+  - type: dropdown
+    id: verify
+    attributes:
+      label: Does the verify script pass on this machine?
+      description: "`./verify.sh`, or `.\\verify.ps1` on Windows (PowerShell 7.3 or newer)."
+      options:
+        - "Yes"
+        - "No (output below)"
+        - Not run
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output and logs
+      description: Tracebacks, script output or run files. Never paste tokens, keys or personal data.
+      render: shell

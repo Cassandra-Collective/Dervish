@@ -1,0 +1,86 @@
+name: Experiment proposal
+description: Propose a pre-registered experiment. Its hypothesis file and pass lines are merged before any run.
+labels: ["experiment", "area: evaluation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is the proposal. The order after it is fixed (see [CONTRIBUTING.md](https://github.com/Cassandra-Collective/Dervish/blob/main/CONTRIBUTING.md), section 4):
+
+        1. **Register:** a pull request adds `docs/HYPOTHESIS-D00N.md` in the style of `docs/HYPOTHESIS-D001.md` and `docs/HYPOTHESIS-D002.md`, and is merged before any run.
+        2. **Run** the registered arms and seeds, all of them.
+        3. **Record:** raw run files under `runs/`, a verdict script that applies the registered lines, and a `docs/RESULTS.md` stage that says what the result does not prove.
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+      description: The claim under test, in one or two sentences, and what it builds on (a stage of docs/RESULTS.md, a hypothesis, an issue).
+    validations:
+      required: true
+  - type: textarea
+    id: arms
+    attributes:
+      label: Arms
+      description: Every arm, with every setting that differs between them. A table is easiest.
+      value: |
+        | Arm | What it is | Why it is here |
+        | --- | --- | --- |
+        |  |  |  |
+    validations:
+      required: true
+  - type: textarea
+    id: baselines
+    attributes:
+      label: Baselines and selection rule
+      description: Which Muon-family or other baselines, and why they are the strongest fair ones. If any arm is tuned, every family gets the same number of looks, on a selection seed that is not an evaluation seed (as in Stage D8a).
+    validations:
+      required: true
+  - type: textarea
+    id: pass-lines
+    attributes:
+      label: Pass lines
+      description: For every question, the metric, the step, how seeds are aggregated, the interval, and the numeric lines with their outcome names (PASS, PARTIAL, KILL or similar). Say whether a line applies to the mean or to the upper end of the paired interval (the non-inferiority form that Stage D8 recommends).
+    validations:
+      required: true
+  - type: textarea
+    id: seeds
+    attributes:
+      label: Seeds
+      description: The selection seed and the evaluation seeds, and why that many. Evaluation seeds must be fresh. Already used, so not fresh, are 7 11 19 (D001 and the post-hoc stages) and 23 29 31 37 41 (D002, with 7 for selection).
+    validations:
+      required: true
+  - type: textarea
+    id: compute
+    attributes:
+      label: Compute
+      description: Device (one per comparison; the lab-scale record is CPU float32), threads, number of runs, steps per run, and an estimate of the wall-clock time. A 1000-step lab run took about five minutes on two CPU threads in Stage D1.
+    validations:
+      required: true
+  - type: textarea
+    id: not-proven
+    attributes:
+      label: What it would not prove
+      description: The scale, data, hardware and settings the result would not cover, and the readings it would not support even if every line passes.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and confounds
+      description: What could make the comparison unfair or the result misleading, and how the design guards against it.
+  - type: textarea
+    id: decides
+    attributes:
+      label: What each outcome would change
+      description: What the project would do after a PASS, a PARTIAL and a KILL.
+  - type: checkboxes
+    id: discipline
+    attributes:
+      label: Evidence discipline
+      options:
+        - label: The hypothesis file with these pass lines will be merged before any run.
+          required: true
+        - label: Raw run files will be committed as produced, and the verdicts computed by a script that applies the registered lines as written.
+          required: true
+        - label: The docs/RESULTS.md stage will say what the result does not prove.
+          required: true

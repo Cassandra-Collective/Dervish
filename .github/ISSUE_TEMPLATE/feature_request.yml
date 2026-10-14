@@ -1,0 +1,62 @@
+name: Feature or improvement
+description: Propose a change to the optimizer, the lab, the scripts or the documents.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a new experiment or a claim that needs runs, use the **Experiment proposal** form instead: experiments are pre-registered (see [CONTRIBUTING.md](https://github.com/Cassandra-Collective/Dervish/blob/main/CONTRIBUTING.md), section 4).
+
+        Changing a default or a number stated in the documents is a decision for the owner, so it starts here, before any code.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What is missing or wrong today, and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What you would change, and how you would check that it works.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - "The optimizer package (dervish/)"
+        - "The lab and the evaluation record (lab/, runs/, hypotheses, results)"
+        - "Packaging, CI and the verify and run scripts"
+        - "Documentation only"
+    validations:
+      required: true
+  - type: dropdown
+    id: trajectory
+    attributes:
+      label: Would it change training trajectories or recorded numbers?
+      description: For example the 20-step smoke values that verify.sh prints, a default in FRAME_DEFAULTS, or a number stated in the README or docs/DESIGN.md.
+      options:
+        - "No"
+        - "Yes"
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other ways to solve the problem, and why this one is better.
+  - type: textarea
+    id: references
+    attributes:
+      label: Evidence and references
+      description: Measurements, papers (cite the primary source) or prior art. docs/PRIOR_ART.md lists what is already known.
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to implement this myself.
