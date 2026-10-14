@@ -1,0 +1,5 @@
+python lab/compare.py --corpus lab/corpus/tiny_shakespeare_raw.txt --normalize --eval-interval 100 --eval-mode full --block-size 128 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --steps 1000 --device cpu --ns-dtype float32 --quiet --threads 2 --configs dervish_tuned_mona_decay --seeds 7 --out runs/d8/d8a/dervish_tuned_mona_decay_b0.98_s7.jsonl --summary runs/d8/d8a/md/dervish_tuned_mona_decay_b0.98_s7.md --title dervish_tuned_mona_decay_b0.98_s7 --sweep-key mona_beta --sweep-values 0.98
+
+== dervish_tuned_mona_decay seed 7 mona_beta=0.98: val_nll=1.517400 peak_att=15.08 train_s=964.0
+wrote runs/d8/d8a/dervish_tuned_mona_decay_b0.98_s7.jsonl and runs/d8/d8a/md/dervish_tuned_mona_decay_b0.98_s7.md
+

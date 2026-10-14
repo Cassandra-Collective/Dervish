@@ -1,0 +1,5 @@
+python lab/compare.py --corpus lab/corpus/tiny_shakespeare_raw.txt --normalize --eval-interval 100 --eval-mode full --block-size 128 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --steps 1000 --device cpu --ns-dtype float32 --quiet --threads 2 --configs mona_lr01 --seeds 7 --out runs/d8/d8a/mona_lr01_b0.9_s7.jsonl --summary runs/d8/d8a/md/mona_lr01_b0.9_s7.md --title mona_lr01_b0.9_s7 --sweep-key mona_beta --sweep-values 0.9
+
+== mona_lr01 seed 7 mona_beta=0.9: val_nll=1.560952 peak_att=31.83 train_s=1166.4
+wrote runs/d8/d8a/mona_lr01_b0.9_s7.jsonl and runs/d8/d8a/md/mona_lr01_b0.9_s7.md
+

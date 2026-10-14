@@ -211,6 +211,77 @@ def fig_lr_basins(sweeps: dict[str, list[dict]], out: Path) -> None:
     plt.close(fig)
 
 
+D8_FAMILIES = {  # family -> (colour, dash, display name)
+    "Muon": ("#eb6834", "-", "Muon"),
+    "MONA": ("#4a3aa7", "-", "MONA"),
+    "Dervish": ("#2a78d6", "-", "Dervish (cap 1.0)"),
+    "Dervish + MONA": ("#2a78d6", "--", "Dervish + MONA term"),
+}
+
+
+def d8_family(label: str) -> str:
+    if label.startswith("dervish_tuned_mona"):
+        return "Dervish + MONA"
+    if label.startswith("dervish"):
+        return "Dervish"
+    return "MONA" if label.startswith("mona") else "Muon"
+
+
+def fig_d8(rows: list[dict], out: Path) -> None:
+    """Stage D8b: curves per schedule, and per-seed paired differences at step 1000."""
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for r in rows:
+        schedule = "decay" if "_decay" in r["label"] else "constant"
+        groups.setdefault((schedule, d8_family(r["label"])), []).append(r)
+    fig, axes = plt.subplots(3, 2, figsize=(11, 10.5), dpi=150)
+    fig.patch.set_facecolor(SURFACE)
+    for col, schedule in enumerate(("constant", "decay")):
+        for family, (color, dash, name) in D8_FAMILIES.items():
+            group = groups.get((schedule, family), [])
+            if not group:
+                continue
+            steps = [h["step"] for h in group[0]["history"]]
+            beta = group[0].get("mona_beta")
+            lr = group[0].get("muon_lr")
+            tag = name + (f", lr {lr:g}" if lr else "") + (f", beta_a {beta:g}" if beta else "")
+            for row, key in enumerate(("val_nll", "att_logit_max")):
+                series = [[r["history"][i][key] for r in group] for i in range(len(steps))]
+                mean = [statistics.fmean(v) for v in series]
+                ax = axes[row][col]
+                ax.fill_between(steps, [min(v) for v in series], [max(v) for v in series], color=color, alpha=0.10, linewidth=0)
+                ax.plot(steps, mean, color=color, linewidth=2, linestyle=dash, label=f"{tag} (n={len(group)})")
+                ax.annotate(f"{mean[-1]:.3g}", (steps[-1], mean[-1]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=TEXT_2, va="center")
+        style(axes[0][col], f"D8b {schedule} rate: validation NLL, fresh seeds", "training step", "validation NLL")
+        axes[0][col].set_ylim(1.45, 1.85)
+        style(axes[1][col], f"D8b {schedule} rate: largest attention logit", "training step", "attention logit max")
+        axes[1][col].set_yscale("log")
+        axes[0][col].legend(fontsize=7, frameon=False, labelcolor=TEXT)
+        # paired differences at step 1000
+        ax = axes[2][col]
+        nll = {f: {r["seed"]: r["val_nll"] for r in groups.get((schedule, f), [])} for f in D8_FAMILIES}
+        means = {f: statistics.fmean(nll[f].values()) for f in ("Muon", "MONA") if nll[f]}
+        ref = min(means, key=means.get) if means else "Muon"
+        pairs = [("MONA - Muon", "MONA", "Muon"), (f"Dervish - {ref}", "Dervish", ref), ("Dervish+MONA - Dervish", "Dervish + MONA", "Dervish")]
+        for i, (title, a, b) in enumerate(pairs):
+            seeds = sorted(set(nll[a]) & set(nll[b]))
+            diffs = [nll[a][s] - nll[b][s] for s in seeds]
+            if len(diffs) < 2:
+                continue
+            mean = statistics.fmean(diffs)
+            half = {4: 2.776}.get(len(diffs) - 1, 2.0) * statistics.stdev(diffs) / math.sqrt(len(diffs))
+            ax.scatter([d for d in diffs], [i] * len(diffs), color=TEXT_2, s=14, zorder=3)
+            ax.errorbar([mean], [i], xerr=[[half], [half]], color=D8_FAMILIES[a][0], capsize=4, linewidth=2, marker="o", markersize=6, zorder=4)
+            ax.annotate(f"{mean:+.3f}", (mean, i), xytext=(0, 8), textcoords="offset points", fontsize=7, color=TEXT, ha="center")
+        ax.axvline(0.0, color=TEXT_2, linewidth=1)
+        ax.axvline(0.030, color="#2a78d6", linewidth=1, linestyle=":", label="Q2 parity line +0.030")
+        ax.set_yticks(range(len(pairs)), [p[0] for p in pairs])
+        style(ax, f"D8b {schedule}: paired differences at step 1000", "NLL difference (dots: seeds; bar: mean, 95% CI; < 0: first arm better)", "")
+        ax.legend(fontsize=7, frameon=False, labelcolor=TEXT, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(out / "d8_mona_comparison.png", facecolor=SURFACE)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, default=Path("runs"))
@@ -248,6 +319,10 @@ def main() -> None:
     if e1 and (e6 or e7):
         fig_replication(e1, e6, e7, args.out)
         print("wrote e6_e7_replication.png")
+    d8 = load(args.runs / "d8" / "d8b_eval.jsonl")
+    if d8:
+        fig_d8(d8, args.out)
+        print("wrote d8_mona_comparison.png")
 
 
 if __name__ == "__main__":

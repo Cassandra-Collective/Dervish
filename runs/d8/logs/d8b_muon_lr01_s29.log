@@ -1,0 +1,5 @@
+python lab/compare.py --corpus lab/corpus/tiny_shakespeare_raw.txt --normalize --eval-interval 100 --eval-mode full --block-size 128 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --steps 1000 --device cpu --ns-dtype float32 --quiet --threads 2 --configs muon_lr01 --seeds 29 --out runs/d8/d8b/muon_lr01_s29.jsonl --summary runs/d8/d8b/md/muon_lr01_s29.md --title muon_lr01_s29
+
+== muon_lr01 seed 29: val_nll=1.535686 peak_att=29.19 train_s=1931.9
+wrote runs/d8/d8b/muon_lr01_s29.jsonl and runs/d8/d8b/md/muon_lr01_s29.md
+

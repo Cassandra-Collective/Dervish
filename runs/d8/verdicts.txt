@@ -1,0 +1,73 @@
+Stage D8a - selection on seed 7 (lowest validation NLL at step 1000)
+  constant Muon            muon_lr01                              1.526010
+  constant Muon            muon                                   1.541158
+  constant Muon            -> selected muon_lr01
+  constant MONA            mona_lr01 (beta_a 0.99)                1.538663
+  constant MONA            mona_lr01 (beta_a 0.98)                1.541749
+  constant MONA            mona_lr01 (beta_a 0.95)                1.545893
+  constant MONA            mona_lr01 (beta_a 0.9)                 1.560952
+  constant MONA            mona (beta_a 0.99)                     1.571366
+  constant MONA            mona (beta_a 0.98)                     1.583291
+  constant MONA            mona (beta_a 0.9)                      1.597181
+  constant MONA            mona (beta_a 0.95)                     1.599130
+  constant MONA            -> selected mona_lr01 (beta_a 0.99)
+  constant Dervish         dervish_tuned                          1.589352
+  constant Dervish         -> selected dervish_tuned
+  constant Dervish + MONA  dervish_tuned_mona (beta_a 0.99)       1.599158
+  constant Dervish + MONA  dervish_tuned_mona (beta_a 0.98)       1.622792
+  constant Dervish + MONA  dervish_tuned_mona (beta_a 0.95)       1.635657
+  constant Dervish + MONA  dervish_tuned_mona (beta_a 0.9)        1.650575
+  constant Dervish + MONA  -> selected dervish_tuned_mona (beta_a 0.99)
+  decay    Muon            muon_decay                             1.490938
+  decay    Muon            muon_lr01_decay                        1.496437
+  decay    Muon            -> selected muon_decay
+  decay    MONA            mona_lr01_decay (beta_a 0.98)          1.494821
+  decay    MONA            mona_decay (beta_a 0.98)               1.496842
+  decay    MONA            mona_lr01_decay (beta_a 0.99)          1.498440
+  decay    MONA            mona_lr01_decay (beta_a 0.95)          1.499012
+  decay    MONA            mona_decay (beta_a 0.95)               1.500918
+  decay    MONA            mona_decay (beta_a 0.99)               1.504903
+  decay    MONA            mona_lr01_decay (beta_a 0.9)           1.505709
+  decay    MONA            mona_decay (beta_a 0.9)                1.509049
+  decay    MONA            -> selected mona_lr01_decay (beta_a 0.98)
+  decay    Dervish         dervish_tuned_decay                    1.511704
+  decay    Dervish         -> selected dervish_tuned_decay
+  decay    Dervish + MONA  dervish_tuned_mona_decay (beta_a 0.99) 1.513474
+  decay    Dervish + MONA  dervish_tuned_mona_decay (beta_a 0.98) 1.517400
+  decay    Dervish + MONA  dervish_tuned_mona_decay (beta_a 0.95) 1.524603
+  decay    Dervish + MONA  dervish_tuned_mona_decay (beta_a 0.9)  1.530093
+  decay    Dervish + MONA  -> selected dervish_tuned_mona_decay (beta_a 0.99)
+
+Machine check against the record (seed 7; expected agreement within 0.01):
+  muon                     record 1.538644  here 1.541158  diff +0.002514  ok
+  muon_lr01                record 1.527197  here 1.526010  diff -0.001187  ok
+  dervish_tuned            record 1.590136  here 1.589352  diff -0.000784  ok
+  muon_decay               record 1.491569  here 1.490938  diff -0.000631  ok
+  dervish_tuned_decay      record 1.511704  here 1.511704  diff +0.000000  ok
+
+Stage D8b - fresh seeds
+
+  [constant]
+  Muon            muon_lr01                              seeds [23, 29, 31, 37, 41]  mean NLL 1.532775 (sd 0.003893)  spectral 0.682 -> 5.323 (x7.81)  peak att logit 27.29
+  MONA            mona_lr01 (beta_a 0.99)                seeds [23, 29, 31, 37, 41]  mean NLL 1.535728 (sd 0.002387)  spectral 0.682 -> 8.855 (x12.99)  peak att logit 38.74
+  Dervish         dervish_tuned                          seeds [23, 29, 31, 37, 41]  mean NLL 1.589338 (sd 0.007623)  spectral 0.498 -> 1.000 (x2.01)  peak att logit 16.87
+  Dervish + MONA  dervish_tuned_mona (beta_a 0.99)       seeds [23, 29, 31, 37, 41]  mean NLL 1.604694 (sd 0.006435)  spectral 0.498 -> 1.000 (x2.01)  peak att logit 16.28
+  Q1 delta(MONA, Muon) = +0.002953  95% CI [-0.001018, +0.006924]  n=5  -> NOT REPLICATED
+  Q2 reference R = Muon (mean 1.532775); delta(Dervish, R) = +0.056563  95% CI [+0.045961, +0.067166]  (parity line +0.030, partial line +0.100)  -> PARTIAL
+  Q3 bound over every evaluation of every Dervish and Dervish + MONA run: spectral max 1.000002 (cap 1.0), smallest (bound - measured attention logit) 13.3100 -> holds
+  Q4 delta(Dervish + MONA, Dervish) = +0.015356  95% CI [+0.011162, +0.019550]  -> HURTS
+
+  [decay]
+  Muon            muon_decay                             seeds [23, 29, 31, 37, 41]  mean NLL 1.484830 (sd 0.005260)  spectral 0.682 -> 6.669 (x9.78)  peak att logit 30.04
+  MONA            mona_lr01_decay (beta_a 0.98)          seeds [23, 29, 31, 37, 41]  mean NLL 1.492993 (sd 0.004401)  spectral 0.682 -> 4.942 (x7.25)  peak att logit 24.01
+  Dervish         dervish_tuned_decay                    seeds [23, 29, 31, 37, 41]  mean NLL 1.510911 (sd 0.008646)  spectral 0.498 -> 1.000 (x2.01)  peak att logit 15.78
+  Dervish + MONA  dervish_tuned_mona_decay (beta_a 0.99) seeds [23, 29, 31, 37, 41]  mean NLL 1.509860 (sd 0.008699)  spectral 0.498 -> 1.000 (x2.01)  peak att logit 15.51
+  Q1 delta(MONA, Muon) = +0.008163  95% CI [+0.003025, +0.013300]  n=5  -> REVERSED
+  Q2 reference R = Muon (mean 1.484830); delta(Dervish, R) = +0.026081  95% CI [+0.014636, +0.037526]  (parity line +0.030, partial line +0.100)  -> PASS
+  Q3 bound over every evaluation of every Dervish and Dervish + MONA run: spectral max 1.000003 (cap 1.0), smallest (bound - measured attention logit) 12.7644 -> holds
+  Q4 delta(Dervish + MONA, Dervish) = -0.001051  95% CI [-0.009163, +0.007062]  -> NEUTRAL
+
+Verdicts:
+  constant Q1 NOT REPLICATED | Q2 PARTIAL | Q3 bound holds | Q4 HURTS
+  decay    Q1 REVERSED | Q2 PASS | Q3 bound holds | Q4 NEUTRAL   (primary)
+Decision: Q2 PASS on the primary schedule -> prepare for open source.

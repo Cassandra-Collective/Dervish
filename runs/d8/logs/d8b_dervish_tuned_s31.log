@@ -1,0 +1,5 @@
+python lab/compare.py --corpus lab/corpus/tiny_shakespeare_raw.txt --normalize --eval-interval 100 --eval-mode full --block-size 128 --batch-size 32 --n-layer 4 --n-head 4 --n-embd 128 --steps 1000 --device cpu --ns-dtype float32 --quiet --threads 2 --configs dervish_tuned --seeds 31 --out runs/d8/d8b/dervish_tuned_s31.jsonl --summary runs/d8/d8b/md/dervish_tuned_s31.md --title dervish_tuned_s31
+
+== dervish_tuned seed 31: val_nll=1.589118 peak_att=16.77 train_s=1504.4
+wrote runs/d8/d8b/dervish_tuned_s31.jsonl and runs/d8/d8b/md/dervish_tuned_s31.md
+
