@@ -11,9 +11,14 @@ on both without weakening the record.
   [this repository's advisory form](https://github.com/Cassandra-Collective/Dervish/security/advisories/new),
   as described in the
   [security policy](https://github.com/Cassandra-Collective/.github/blob/main/SECURITY.md).
-- **Help and questions:** see the
-  [support page](https://github.com/Cassandra-Collective/.github/blob/main/SUPPORT.md),
-  or open an issue with the "Question" form.
+- **Help and questions:** ask in
+  [Discussions Q&A](https://github.com/Cassandra-Collective/Dervish/discussions/categories/q-a),
+  where anyone can answer and the answer that settles a question can be
+  marked as accepted. For a question that should be tracked as an issue, for
+  example one whose answer will need a change to the code, the documents or
+  the record, open an issue with the "Question" form instead. The
+  [support page](https://github.com/Cassandra-Collective/.github/blob/main/SUPPORT.md)
+  explains what to expect.
 
 ## 1 · What Dervish is, and the evidence discipline
 
