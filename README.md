@@ -82,7 +82,7 @@ optimizer.initialize()   # project the hidden matrices onto the manifold before 
 ## Reproduce the record
 
 ```bash
-./verify.sh                  # Windows: .\verify.ps1 (29 tests, two examples, a 20-step smoke per optimizer; about two minutes)
+./verify.sh                  # Windows: .\verify.ps1 (34 tests, two examples, a 20-step smoke per optimizer; about two minutes)
 ./run_matrices.sh e1         # e1, e2, e3 or all: the pre-registered matrices of Hypothesis D001 (about three hours on four CPU threads)
 ./run_matrices.sh d8         # Hypothesis D002, Dervish against MONA (70 runs; about four hours with 8 parallel jobs)
 python lab/check_claims.py   # D001 verdicts, computed from runs/
@@ -166,7 +166,7 @@ Figures: `figures/e1_text_curves.png`, `figures/e2_lr_basins.png`,
 | `dervish/` | The optimizer package. `polar.py`: Newton-Schulz iterations. `matricize.py`: frame views for 2D matrices, expert banks, convolutions and per-head projections. `optimizer.py`: Dervish, the reference Muon and the optional MONA term. `diagnostics.py`. |
 | `lab/` | A self-contained, CPU-sized character-level language-model lab: an instrumented `TinyTransformer`, deterministic data, `train.py`, `compare.py`, `run_d8.py`, `figures.py`, `check_claims.py`, `check_d002.py`. |
 | `lab/corpus/` | Tiny Shakespeare (raw, `1,115,394` bytes) and a synthetic long-context copy corpus (`512` lines, generator seed `20260617`). |
-| `tests/` | 29 pytest tests: polar factors against SVD, the manifold invariant for every shape rule, the spectral cap under pressure, the rank floor, determinism, the rotation-gate interpretation, MONA (`alpha = 0` is Muon bit for bit; the tied-term identity), and the lab harness itself. |
+| `tests/` | 34 pytest tests: polar factors against SVD, the manifold invariant for every shape rule, the spectral cap under pressure, the rank floor, determinism, the rotation-gate interpretation, MONA (`alpha = 0` is Muon bit for bit; the tied-term identity), and the lab harness itself. |
 | `docs/DESIGN.md` | The algorithm, the four propositions with proofs, knobs, cost and limits. |
 | `docs/HYPOTHESIS-D001.md`, `docs/HYPOTHESIS-D002.md` | The pre-registered claims and pass or fail lines. |
 | `docs/RESULTS.md` | The staged evidence record, Stages D1 to D8. |

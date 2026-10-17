@@ -213,3 +213,92 @@ def test_rotation_interpretation_small_step_is_an_orthogonal_gate():
     assert 0.0 < angle <= 0.05 * 1.25
     step = float(torch.linalg.matrix_norm(q1_wide - q0_wide, ord=2))
     assert 0.0 < step <= 0.05 * 1.25
+
+
+def test_frame_option_init_polar_iterative():
+    torch.manual_seed(20)
+    model = Toy()
+    opt, _ = build_dervish(
+        model.named_parameters(),
+        is_frame=_frame_predicate,
+        views=_views(model),
+        frame_kwargs={"init_polar": "iterative"},
+    )
+    opt.initialize()
+    _check_manifold(model, opt, cap=None, floor=0.0)
+    for p in opt.frame_parameters():
+        state = opt.state[p]
+        mat = matricize(p.detach(), opt.view_for(p))
+        expected_w = state["scale"].unsqueeze(-1) * state["frame"]
+        assert torch.allclose(mat.wide, expected_w, atol=1e-4)
+
+
+def test_frame_option_tangent_false():
+    torch.manual_seed(21)
+    cap = 0.8
+    floor = 0.05
+    model = Toy()
+    opt, _ = build_dervish(
+        model.named_parameters(),
+        is_frame=_frame_predicate,
+        views=_views(model),
+        frame_kwargs={"tangent": False, "scale_cap": cap, "scale_floor": floor, "lr": 0.05, "scale_lr": 1e-2},
+    )
+    opt.initialize()
+    _train(model, opt, steps=20, seed=22)
+    _check_manifold(model, opt, cap=cap, floor=floor)
+    report = hidden_matrix_report(model, _frame_predicate, _views(model))
+    assert report["hidden_spectral_norm_max"] <= cap + 1e-4
+
+
+def test_frame_option_scale_decay():
+    def run_decay(decay: float) -> torch.Tensor:
+        torch.manual_seed(23)
+        model = Toy()
+        opt, _ = build_dervish(
+            model.named_parameters(),
+            is_frame=_frame_predicate,
+            views=_views(model),
+            frame_kwargs={"scale_decay": decay, "scale_lr": 1e-2},
+        )
+        opt.initialize()
+        _train(model, opt, steps=20, seed=24, fixed_batch=True)
+        return torch.cat([opt.state[p]["scale"].flatten() for p in opt.frame_parameters()])
+
+    s_no_decay = run_decay(0.0)
+    s_decay = run_decay(0.1)
+    assert torch.all(s_decay < s_no_decay)
+
+
+def test_frame_option_retraction_steps():
+    torch.manual_seed(25)
+    model = Toy()
+    opt, _ = build_dervish(
+        model.named_parameters(),
+        is_frame=_frame_predicate,
+        views=_views(model),
+        frame_kwargs={"lr": 0.2, "retraction_steps": 2},
+    )
+    opt.initialize()
+    _train(model, opt, steps=30, seed=26)
+    rep = opt.frame_report()
+    assert max(r["orthonormality_error_max"] for r in rep) < 1e-4
+    _check_manifold(model, opt, cap=None, floor=0.0)
+
+
+def test_frame_option_ns_dtype_bfloat16():
+    torch.manual_seed(27)
+    cap = 0.75
+    model = Toy()
+    opt, _ = build_dervish(
+        model.named_parameters(),
+        is_frame=_frame_predicate,
+        views=_views(model),
+        frame_kwargs={"ns_dtype": torch.bfloat16, "scale_cap": cap, "lr": 0.05, "scale_lr": 1e-2},
+    )
+    opt.initialize()
+    _train(model, opt, steps=20, seed=28)
+    _check_manifold(model, opt, cap=cap, floor=0.0)
+    report = hidden_matrix_report(model, _frame_predicate, _views(model))
+    assert report["hidden_spectral_norm_max"] <= cap + 1e-4
+
